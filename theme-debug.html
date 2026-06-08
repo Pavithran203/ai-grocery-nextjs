@@ -1,0 +1,21 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="http://localhost:3000/_next/static/css/app/globals.css">
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    .color-box { width: 100px; height: 100px; margin: 10px; display: inline-block; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <h1>Theme Test</h1>
+  <div class="color-box" style="background-color: var(--semantic-emerald-600);"></div>
+  <div class="color-box" style="background-color: var(--light-background);"></div>
+  <p id="test"></p>
+  <script>
+    const emColor = getComputedStyle(document.documentElement).getPropertyValue('--semantic-emerald-600');
+    const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--light-background');
+    document.getElementById('test').innerHTML = Emerald-600:  | Background: ;
+  </script>
+</body>
+</html>

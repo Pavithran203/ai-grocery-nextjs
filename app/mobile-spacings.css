@@ -1,0 +1,16 @@
+/* GENERATED - Mobile spacing tokens from GroceryMob_app/services/theme.js */
+:root {
+  /* Mobile spacing (px) */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* Aliases for components */
+  --gap-xs: var(--space-xs);
+  --gap-sm: var(--space-sm);
+  --gap-md: var(--space-md);
+  --gap-lg: var(--space-lg);
+  --gap-xl: var(--space-xl);
+}
