@@ -77,6 +77,7 @@ export const AuthProvider = ({ children }) => {
     setAuthToken(null);
     localStorage.removeItem('freshkart_token');
     localStorage.removeItem('freshkart_user');
+    localStorage.removeItem('nearmart-admin-session');
     sessionStorage.removeItem('freshkart_token');
     sessionStorage.removeItem('freshkart_user');
     router.push('/');

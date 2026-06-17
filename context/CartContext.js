@@ -92,9 +92,26 @@ export const CartProvider = ({ children }) => {
         const updatedCart = await api.addToCart(product.id, quantity);
         if (updatedCart && updatedCart.items) {
           setCartItems(updatedCart.items.map(i => ({ ...i.product, quantity: i.quantity })));
+        } else {
+          // Backend returned no items — fall back to local add
+          setCartItems(prev => {
+            const existing = prev.find(item => item.id === product.id);
+            if (existing) {
+              return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item);
+            }
+            return [...prev, { ...product, quantity }];
+          });
         }
       } catch (e) {
-        console.error('Failed to add to cart:', e);
+        console.error('Failed to add to cart via API, falling back to local cart:', e);
+        // Fallback: add locally so the user isn't stuck
+        setCartItems(prev => {
+          const existing = prev.find(item => item.id === product.id);
+          if (existing) {
+            return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item);
+          }
+          return [...prev, { ...product, quantity }];
+        });
       }
       setIsCartLoading(false);
     } else {
@@ -119,10 +136,12 @@ export const CartProvider = ({ children }) => {
         if (updatedCart && updatedCart.items) {
           setCartItems(updatedCart.items.map(i => ({ ...i.product, quantity: i.quantity })));
         } else {
-          setCartItems([]);
+          // Backend returned no items or product not found — remove locally
+          setCartItems(prev => prev.filter(item => item.id !== id));
         }
       } catch (e) {
-        console.error('Failed to remove from cart:', e);
+        console.error('Failed to remove from cart via API, falling back to local:', e);
+        setCartItems(prev => prev.filter(item => item.id !== id));
       }
       setIsCartLoading(false);
     } else {
@@ -139,9 +158,13 @@ export const CartProvider = ({ children }) => {
         const updatedCart = await api.updateCartItem(id, quantity);
         if (updatedCart && updatedCart.items) {
           setCartItems(updatedCart.items.map(i => ({ ...i.product, quantity: i.quantity })));
+        } else {
+          // Backend didn't return items — update locally
+          setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity } : item));
         }
       } catch (e) {
-        console.error('Failed to update quantity:', e);
+        console.error('Failed to update quantity via API, falling back to local:', e);
+        setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity } : item));
       }
       setIsCartLoading(false);
     } else {

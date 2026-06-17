@@ -159,11 +159,276 @@ export const products = [
 const sanitizedProducts = sanitizeProductImages(products);
 products.splice(0, products.length, ...sanitizedProducts);
 
+export const orders = [
+  {
+    _id: 'o1', id: 'ORD-A1B2C3D4E', customer: 'You', amount: 695, status: 'Delivered', orderStatus: 'delivered',
+    createdAt: '2026-06-08T10:12:00Z', placedAt: '2026-06-08 10:12',
+    deliveryFee: 0, tax: 35, subtotal: 660,
+    paymentMethod: 'UPI (Google Pay)', address: '42, Lake View Apartments, Sector 12, Chennai',
+    deliveryPartner: { name: 'Ravi Kumar', phone: '+91 98765 43210', rating: 4.9 },
+    deliveredAt: '2026-06-08T10:38:00Z',
+    items: [
+      { id: 'p19', name: 'Basmati Rice 5kg', quantity: 1, price: 550, image_url: 'https://images.unsplash.com/photo-1536304993881-ff6e9eefa2a6?auto=format&fit=crop&q=80&w=400' },
+      { id: 'p39', name: 'Sunflower Oil 1L', quantity: 1, price: 145, image_url: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&q=80&w=400' },
+    ],
+    timeline: [
+      { status: 'placed', label: 'Order Placed', time: '2026-06-08T10:12:00Z' },
+      { status: 'confirmed', label: 'Order Confirmed', time: '2026-06-08T10:14:00Z' },
+      { status: 'packed', label: 'Packed & Ready', time: '2026-06-08T10:22:00Z' },
+      { status: 'out_for_delivery', label: 'Out for Delivery', time: '2026-06-08T10:28:00Z' },
+      { status: 'delivered', label: 'Delivered', time: '2026-06-08T10:38:00Z' },
+    ],
+  },
+  {
+    _id: 'o2', id: 'ORD-F5G6H7I8J', customer: 'You', amount: 1290, status: 'Out for Delivery', orderStatus: 'out_for_delivery',
+    createdAt: '2026-06-11T09:05:00Z', placedAt: '2026-06-11 09:05',
+    deliveryFee: 35, tax: 55, subtotal: 1200,
+    paymentMethod: 'Card (Visa)', address: '7, Sunshine Colony, Sector 5, Chennai',
+    deliveryPartner: { name: 'Priya Sharma', phone: '+91 98765 12345', rating: 4.7 },
+    items: [
+      { id: 'p56', name: 'Jaggery Block - Achu Vellam', quantity: 2, price: 65, image_url: 'https://www.nutriwellmart.com/shop/wp-content/uploads/2024/11/IMG_7829-scaled.jpg' },
+      { id: 'p38', name: 'Pure Cow Ghee', quantity: 1, price: 350, image_url: 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?auto=format&fit=crop&q=80&w=400' },
+      { id: 'p21', name: 'Toor Dal', quantity: 3, price: 160, image_url: 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_400,h_400,q_auto,f_auto/samples/food/spices.jpg' },
+      { id: 'p30', name: 'Turmeric Powder', quantity: 2, price: 35, image_url: 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?auto=format&fit=crop&q=80&w=400' },
+    ],
+    timeline: [
+      { status: 'placed', label: 'Order Placed', time: '2026-06-11T09:05:00Z' },
+      { status: 'confirmed', label: 'Order Confirmed', time: '2026-06-11T09:08:00Z' },
+      { status: 'packed', label: 'Packed & Ready', time: '2026-06-11T09:20:00Z' },
+      { status: 'out_for_delivery', label: 'Out for Delivery', time: '2026-06-11T09:35:00Z' },
+    ],
+  },
+  {
+    _id: 'o3', id: 'ORD-K9L0M1N2O', customer: 'You', amount: 640, status: 'Preparing', orderStatus: 'preparing',
+    createdAt: '2026-06-11T11:42:00Z', placedAt: '2026-06-11 11:42',
+    deliveryFee: 30, tax: 30, subtotal: 580,
+    paymentMethod: 'UPI (PhonePe)', address: '15, Green Park Residency, Sector 8, Chennai',
+    items: [
+      { id: 'p22', name: 'Urad Dal', quantity: 2, price: 140, image_url: 'https://vedicnutraceuticals.com/wp-content/uploads/2022/11/Urad-Dal-Whole.jpg' },
+      { id: 'p30', name: 'Turmeric Powder', quantity: 1, price: 35, image_url: 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?auto=format&fit=crop&q=80&w=400' },
+      { id: 'p18', name: 'Ponni Rice 5kg', quantity: 1, price: 345, image_url: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&q=80&w=400' },
+    ],
+    timeline: [
+      { status: 'placed', label: 'Order Placed', time: '2026-06-11T11:42:00Z' },
+      { status: 'confirmed', label: 'Order Confirmed', time: '2026-06-11T11:44:00Z' },
+      { status: 'preparing', label: 'Being Prepared', time: '2026-06-11T11:50:00Z' },
+    ],
+  },
+  {
+    _id: 'o4', id: 'ORD-P3Q4R5S6T', customer: 'You', amount: 320, status: 'Placed', orderStatus: 'placed',
+    createdAt: '2026-06-11T14:30:00Z', placedAt: '2026-06-11 14:30',
+    deliveryFee: 0, tax: 20, subtotal: 300,
+    paymentMethod: 'COD', address: '42, Lake View Apartments, Sector 12, Chennai',
+    items: [
+      { id: 'p23', name: 'Moong Dal', quantity: 1, price: 130, image_url: 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_400,h_400,q_auto,f_auto/samples/food/fish-vegetables.jpg' },
+      { id: 'p37', name: 'Sugar 1kg', quantity: 2, price: 48, image_url: 'https://irp.cdn-website.com/cbf48001/dms3rep/multi/shutterstock_2463705563.jpg' },
+      { id: 'p34', name: 'Coriander Powder', quantity: 1, price: 30, image_url: 'https://tiimg.tistatic.com/fp/1/009/713/coriander-powder-019.jpg' },
+    ],
+    timeline: [
+      { status: 'placed', label: 'Order Placed', time: '2026-06-11T14:30:00Z' },
+    ],
+  },
+  {
+    _id: 'o5', id: 'ORD-U7V8W9X0Y', customer: 'You', amount: 1850, status: 'Delivered', orderStatus: 'delivered',
+    createdAt: '2026-06-01T08:30:00Z', placedAt: '2026-06-01 08:30',
+    deliveryFee: 0, tax: 80, subtotal: 1770,
+    paymentMethod: 'Card (Mastercard)', address: '42, Lake View Apartments, Sector 12, Chennai',
+    deliveryPartner: { name: 'Karan Singh', phone: '+91 98765 67890', rating: 4.8 },
+    deliveredAt: '2026-06-01T09:05:00Z',
+    items: [
+      { id: 'p18', name: 'Ponni Rice 5kg', quantity: 2, price: 345, image_url: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&q=80&w=400' },
+      { id: 'p38', name: 'Pure Cow Ghee', quantity: 1, price: 350, image_url: 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?auto=format&fit=crop&q=80&w=400' },
+      { id: 'p40', name: 'Coconut Oil', quantity: 2, price: 190, image_url: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&q=80&w=400' },
+      { id: 'p35', name: 'Garam Masala 50g', quantity: 1, price: 55, image_url: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&q=80&w=400' },
+    ],
+    timeline: [
+      { status: 'placed', label: 'Order Placed', time: '2026-06-01T08:30:00Z' },
+      { status: 'confirmed', label: 'Order Confirmed', time: '2026-06-01T08:32:00Z' },
+      { status: 'packed', label: 'Packed & Ready', time: '2026-06-01T08:45:00Z' },
+      { status: 'out_for_delivery', label: 'Out for Delivery', time: '2026-06-01T08:52:00Z' },
+      { status: 'delivered', label: 'Delivered', time: '2026-06-01T09:05:00Z' },
+    ],
+  },
+  {
+    _id: 'o6', id: 'ORD-Z1A2B3C4D', customer: 'You', amount: 480, status: 'Cancelled', orderStatus: 'cancelled',
+    createdAt: '2026-05-28T16:20:00Z', placedAt: '2026-05-28 16:20',
+    deliveryFee: 30, tax: 25, subtotal: 425,
+    paymentMethod: 'UPI (Google Pay)', address: '7, Sunshine Colony, Sector 5, Chennai',
+    cancelReason: 'Changed my mind about the order',
+    items: [
+      { id: 'p20', name: 'Wheat Flour - Atta 5kg', quantity: 1, price: 245, image_url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=400' },
+      { id: 'p32', name: 'Cumin Seeds', quantity: 2, price: 65, image_url: 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_400,h_400,q_auto,f_auto/samples/food/spices.jpg' },
+    ],
+    timeline: [
+      { status: 'placed', label: 'Order Placed', time: '2026-05-28T16:20:00Z' },
+      { status: 'cancelled', label: 'Cancelled', time: '2026-05-28T16:35:00Z' },
+    ],
+  },
+  {
+    _id: 'o7', id: 'ORD-E5F6G7H8I', customer: 'You', amount: 965, status: 'Delivered', orderStatus: 'delivered',
+    createdAt: '2026-05-20T12:15:00Z', placedAt: '2026-05-20 12:15',
+    deliveryFee: 0, tax: 45, subtotal: 920,
+    paymentMethod: 'Card (Visa)', address: '42, Lake View Apartments, Sector 12, Chennai',
+    deliveryPartner: { name: 'Ravi Kumar', phone: '+91 98765 43210', rating: 4.9 },
+    deliveredAt: '2026-05-20T12:42:00Z',
+    items: [
+      { id: 'p39', name: 'Sunflower Oil 1L', quantity: 2, price: 145, image_url: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&q=80&w=400' },
+      { id: 'p21', name: 'Toor Dal', quantity: 2, price: 160, image_url: 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_400,h_400,q_auto,f_auto/samples/food/spices.jpg' },
+      { id: 'p36', name: 'Salt 1kg', quantity: 3, price: 20, image_url: 'https://assets.clevelandclinic.org/m/132eedab4e7a01c8/webimage-TooMuchSodiuml-1051727580-770x533-1_jpg.png' },
+      { id: 'p58', name: 'Palm Jaggery - Karupatti', quantity: 1, price: 180, image_url: 'https://5.imimg.com/data5/SELLER/Default/2025/6/519448255/UC/NB/NW/104695777/palm-jaggery-karupatti.jpg' },
+    ],
+    timeline: [
+      { status: 'placed', label: 'Order Placed', time: '2026-05-20T12:15:00Z' },
+      { status: 'confirmed', label: 'Order Confirmed', time: '2026-05-20T12:17:00Z' },
+      { status: 'packed', label: 'Packed & Ready', time: '2026-05-20T12:28:00Z' },
+      { status: 'out_for_delivery', label: 'Out for Delivery', time: '2026-05-20T12:35:00Z' },
+      { status: 'delivered', label: 'Delivered', time: '2026-05-20T12:42:00Z' },
+    ],
+  },
+];
 export const recommendedProducts = products.filter(p => p.tag === 'Recommended');
 export const trendingProducts = products.filter(p => p.tag === 'Trending');
 export const megaDeals = products.slice(0, 12);
 export const newArrivals = products.slice(-6);
 export const smartSuggestionsMap = {};
+const getDynamicBundles = () => {
+  const currentMonth = new Date().getMonth(); // 0 = Jan, 11 = Dec
+  const currentHour = new Date().getHours();
+  
+  const dynamicBundles = [];
+  
+  // Summer (Mar - May)
+  if (currentMonth >= 2 && currentMonth <= 4) {
+    dynamicBundles.push({
+      title: 'Summer Refreshment Combo',
+      title_ta: 'கோடை கால குளிர்ச்சி',
+      badge: 'Summer Special',
+      discount: 45,
+      gradient: 'linear-gradient(135deg, #E0F7FA 0%, #00BCD4 100%)',
+      items: [
+        { id: 'p50', name: 'Lemon 250g', price: 30, image_url: 'https://images.unsplash.com/photo-1590502593747-42298799482c?auto=format&fit=crop&q=80&w=200' },
+        { id: 'p36', name: 'Salt 1kg', price: 20, image_url: 'https://assets.clevelandclinic.org/m/132eedab4e7a01c8/webimage-TooMuchSodiuml-1051727580-770x533-1_jpg.png' },
+        { id: 'p25', name: 'Sugar 1kg', price: 45, image_url: 'https://images.unsplash.com/photo-1581428982868-e410dd4fc358?auto=format&fit=crop&q=80&w=200' }
+      ]
+    });
+  }
+  
+  // Monsoon (Jun - Sep)
+  if (currentMonth >= 5 && currentMonth <= 8) {
+    dynamicBundles.push({
+      title: 'Monsoon Immunity Pack',
+      badge: 'Rainy Season',
+      discount: 55,
+      gradient: 'linear-gradient(135deg, #E8F5E9 0%, #4CAF50 100%)',
+      items: [
+        { id: 'p30', name: 'Turmeric Powder', price: 35, image_url: 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?auto=format&fit=crop&q=80&w=200' },
+        { id: 'p1', name: 'Ginger 250g', price: 25, image_url: 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&q=80&w=200' },
+        { id: 'p56', name: 'Jaggery Block', price: 65, image_url: 'https://www.nutriwellmart.com/shop/wp-content/uploads/2024/11/IMG_7829-scaled.jpg' }
+      ]
+    });
+  }
+  
+  // Winter (Oct - Feb)
+  if (currentMonth >= 9 || currentMonth <= 1) {
+    dynamicBundles.push({
+      title: 'Winter Warmth Combo',
+      badge: 'Winter Special',
+      discount: 60,
+      gradient: 'linear-gradient(135deg, #EFEBE9 0%, #795548 100%)',
+      items: [
+        { id: 'p38', name: 'Pure Cow Ghee', price: 350, image_url: 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?auto=format&fit=crop&q=80&w=200' },
+        { id: 'p20', name: 'Wheat Flour - Atta 5kg', price: 245, image_url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=200' }
+      ]
+    });
+  }
+
+  // Festival - Diwali (Usually October/November)
+  if (currentMonth === 9 || currentMonth === 10) {
+    dynamicBundles.push({
+      title: 'Diwali Puja Special',
+      title_ta: 'தீபாவளி பூஜை சிறப்பு',
+      badge: 'Festival Offer',
+      discount: 150,
+      gradient: 'linear-gradient(135deg, #FFECB3 0%, #FFB300 100%)',
+      items: [
+        { id: 'p56', name: 'Jaggery Block', price: 65, image_url: 'https://www.nutriwellmart.com/shop/wp-content/uploads/2024/11/IMG_7829-scaled.jpg' },
+        { id: 'p38', name: 'Pure Cow Ghee', price: 350, image_url: 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?auto=format&fit=crop&q=80&w=200' },
+        { id: 'p40', name: 'Coconut Oil', price: 190, image_url: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&q=80&w=200' }
+      ]
+    });
+  }
+  
+  // Daily logic: Morning Breakfast (5 AM - 11 AM)
+  if (currentHour >= 5 && currentHour <= 11) {
+    dynamicBundles.push({
+      title: 'Good Morning Breakfast',
+      badge: 'Morning Deal',
+      discount: 25,
+      gradient: 'linear-gradient(135deg, #FFF3E0 0%, #FF9800 100%)',
+      items: [
+        { id: 'p4', name: 'Farm Fresh Eggs - 6 pcs', price: 55, image_url: 'https://images.unsplash.com/photo-1587486913049-53fc88980cfc?auto=format&fit=crop&q=80&w=200' },
+        { id: 'p18', name: 'Ponni Rice 5kg', price: 345, image_url: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&q=80&w=200' }
+      ]
+    });
+  }
+  
+  // Standard everyday bundles
+  const standardBundles = [
+    {
+      title: 'Sambar Master Kit',
+      title_ta: 'சாம்பார் மாஸ்டர் கிட்',
+      title_te: 'సాంబార్ మాస్టర్ కిట్',
+      title_kn: 'ಸಾಂಬಾರ್ ಮಾಸ್ಟರ್ ಕಿಟ್',
+      title_ml: 'സാമ്പാർ മാസ്റ്റർ കിറ്റ്',
+      title_hi: 'सांबर मास्टर किट',
+      badge: 'Nearby Buying',
+      discount: 50,
+      gradient: 'linear-gradient(135deg, #FFCCBC 0%, #FF7043 100%)',
+      items: [
+        { id: 'p21', name: 'Toor Dal', price: 160, image_url: 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_400,h_400,q_auto,f_auto/samples/food/spices.jpg' },
+        { id: 'p30', name: 'Turmeric Powder', price: 35, image_url: 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?auto=format&fit=crop&q=80&w=200' },
+        { id: 'p33', name: 'Mustard Seeds', price: 25, image_url: 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_400,h_400,q_auto,f_auto/samples/food/spices.jpg' }
+      ]
+    },
+    {
+      title: 'Rice & Dal Combo',
+      title_ta: 'அரிசி மற்றும் பருப்பு காம்போ',
+      title_te: 'బియ్యం మరియు పప్పు కాంబో',
+      title_kn: 'ಅಕ್ಕಿ ಮತ್ತು ಬೇಳೆ ಕಾಂಬೊ',
+      title_ml: 'അരിയും പരിപ്പും കോംബോ',
+      title_hi: 'चावल और दाल कॉम्बो',
+      badge: 'Best Seller',
+      discount: 80,
+      gradient: 'linear-gradient(135deg, #FFF9C4 0%, #FFF176 100%)',
+      items: [
+        { id: 'p18', name: 'Ponni Rice 5kg', price: 345, image_url: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&q=80&w=200' },
+        { id: 'p21', name: 'Toor Dal', price: 160, image_url: 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_400,h_400,q_auto,f_auto/samples/food/spices.jpg' },
+        { id: 'p20', name: 'Wheat Flour - Atta 5kg', price: 245, image_url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=200' }
+      ]
+    },
+    {
+      title: 'Spice Box Essentials',
+      title_ta: 'மசாலா பெட்டி எசென்ஷியல்ஸ்',
+      title_te: 'మసాలా బాక్స్ ఎసెన్షియల్స్',
+      title_kn: 'ಮಸಾಲೆ ಬಾಕ್ಸ್ ಎಸೆನ್ಷಿಯಲ್ಸ್',
+      title_ml: 'സ്പൈസ് ബോക്സ് എസൻഷ്യൽസ്',
+      title_hi: 'मसाला बॉक्स आवश्यक वस्तुएं',
+      badge: 'Fast Moving',
+      discount: 40,
+      gradient: 'linear-gradient(135deg, #F8BBD0 0%, #F06292 100%)',
+      items: [
+        { id: 'p30', name: 'Turmeric Powder', price: 35, image_url: 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?auto=format&fit=crop&q=80&w=200' },
+        { id: 'p31', name: 'Red Chilli Powder', price: 45, image_url: 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_400,h_400,q_auto,f_auto/samples/food/spices.jpg' },
+        { id: 'p35', name: 'Garam Masala 50g', price: 55, image_url: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&q=80&w=200' }
+      ]
+    }
+  ];
+  
+  return [...dynamicBundles, ...standardBundles];
+};
+
+// export const bundleSuggestions = getDynamicBundles();
+
 export const bundleSuggestions = [
   {
     title: 'Sambar Master Kit',
@@ -181,6 +446,7 @@ export const bundleSuggestions = [
       { id: 'p33', name: 'Mustard Seeds', price: 25, image_url: 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_400,h_400,q_auto,f_auto/samples/food/spices.jpg' }
     ]
   },
+  /*
   {
     title: 'Festival Puja Special',
     title_ta: 'திருவிழா பூஜை சிறப்பு',
@@ -189,6 +455,9 @@ export const bundleSuggestions = [
     title_ml: 'ഉത്സവ പൂജ സ്പെഷ്യൽ',
     title_hi: 'त्यौहार पूजा स्पेशल',
     badge: 'Festival Offer',
+    // Example: This offer is only valid from Jan 1, 2026 to Dec 31, 2026
+    startDate: '2026-01-01T00:00:00Z',
+    endDate: '2026-12-31T23:59:59Z',
     discount: 150, // Rs 150 off
     gradient: 'linear-gradient(135deg, #FFECB3 0%, #FFB300 100%)',
     items: [
@@ -197,6 +466,33 @@ export const bundleSuggestions = [
       { id: 'p40', name: 'Coconut Oil', price: 190, image_url: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&q=80&w=200' }
     ]
   },
+  {
+    title: 'Summer Refreshment Combo',
+    title_ta: 'கோடை கால குளிர்ச்சி',
+    badge: 'Limited Time',
+    // This offer expires soon (or dynamically)
+    startDate: new Date(Date.now() - 86400000).toISOString(), // started yesterday
+    endDate: new Date(Date.now() + 86400000 * 5).toISOString(), // ends in 5 days
+    discount: 45,
+    gradient: 'linear-gradient(135deg, #E0F7FA 0%, #00BCD4 100%)',
+    items: [
+      { id: 'p50', name: 'Lemon 250g', price: 30, image_url: 'https://images.unsplash.com/photo-1590502593747-42298799482c?auto=format&fit=crop&q=80&w=200' },
+      { id: 'p36', name: 'Salt 1kg', price: 20, image_url: 'https://assets.clevelandclinic.org/m/132eedab4e7a01c8/webimage-TooMuchSodiuml-1051727580-770x533-1_jpg.png' },
+      { id: 'p25', name: 'Sugar 1kg', price: 45, image_url: 'https://images.unsplash.com/photo-1581428982868-e410dd4fc358?auto=format&fit=crop&q=80&w=200' }
+    ]
+  },
+  {
+    title: 'Expired Winter Deal (Hidden)',
+    badge: 'Expired',
+    startDate: '2025-12-01T00:00:00Z',
+    endDate: '2025-12-31T23:59:59Z', // Expired
+    discount: 100,
+    gradient: 'linear-gradient(135deg, #EEEEEE 0%, #BDBDBD 100%)',
+    items: [
+      { id: 'p40', name: 'Coconut Oil', price: 190, image_url: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&q=80&w=200' }
+    ]
+  },
+  */
   {
     title: 'Rice & Dal Combo',
     title_ta: 'அரிசி மற்றும் பருப்பு காம்போ',
@@ -217,7 +513,7 @@ export const bundleSuggestions = [
     title: 'Spice Box Essentials',
     title_ta: 'மசாலா பெட்டி எசென்ஷியல்ஸ்',
     title_te: 'మసాలా బాక్స్ ఎసెన్షియల్స్',
-    title_kn: 'ಮಸಾಲೆ ಬಾಕ್ಸ್ ಎಸೆನ್ಷಿಯಲ್ಸ್',
+    title_kn: 'మసాలె బాక్స్ ఎసెన్షియల్స్',
     title_ml: 'സ്പൈസ് ബോക്സ് എസൻഷ്യൽസ്',
     title_hi: 'मसाला बॉक्स आवश्यक वस्तुएं',
     badge: 'Fast Moving',

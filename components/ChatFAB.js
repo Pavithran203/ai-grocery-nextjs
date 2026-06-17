@@ -12,6 +12,31 @@ export default function ChatFAB() {
     { role: 'bot', content: 'bot.botWelcome' }
   ]);
   const [isTyping, setIsTyping] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
+
+  // Detect when a right-side slide-over panel (order details, cart drawer, etc.) is open
+  useEffect(() => {
+    const checkPanel = () => {
+      const dialog = document.querySelector('[role="dialog"][aria-modal="true"]');
+      const cartDrawer = document.querySelector('[data-cart-drawer]');
+      setPanelOpen(!!(dialog || cartDrawer));
+    };
+
+    checkPanel();
+
+    // Watch for DOM changes (panels being added/removed)
+    const observer = new MutationObserver(checkPanel);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Close chat window when a panel opens so it doesn't overlap
+  useEffect(() => {
+    if (panelOpen && isOpen) {
+      setIsOpen(false);
+    }
+  }, [panelOpen]);
 
   const handleSend = () => {
     if (!message.trim()) return;
@@ -32,9 +57,15 @@ export default function ChatFAB() {
   };
 
   return (
-    <div className="fixed bottom-8 right-8 z-[100] flex flex-col items-end gap-4">
+    <div 
+      className="fixed z-[100] flex flex-col items-end gap-4 transition-all duration-300 ease-in-out"
+      style={{
+        bottom: '2rem',
+        right: panelOpen ? 'calc(28rem + 1.5rem)' : '2rem',
+      }}
+    >
       {/* Chat Window */}
-      {isOpen && (
+      {isOpen && !panelOpen && (
         <div className="w-[380px] h-[550px] bg-white dark:bg-gray-900 rounded-[32px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-gray-100 dark:border-gray-800 flex flex-col overflow-hidden animate-slideUp">
           {/* Header */}
           <div className="bg-emerald-600 p-6 text-white flex items-center justify-between">

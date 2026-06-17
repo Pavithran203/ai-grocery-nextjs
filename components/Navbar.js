@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ShoppingCart, Search, User, MapPin, ChevronDown, Leaf, Globe, Heart, ArrowLeft, X, Loader2 } from "lucide-react";
+import { ShoppingCart, Search, User, MapPin, ChevronDown, Leaf, Globe, Heart, ArrowLeft, X, Loader2, ClipboardList } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useState, useEffect, useRef } from "react";
@@ -15,7 +15,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { getCartCount, setIsCartOpen } = useCart();
-  const { user, isAuthenticated, logout, setLoginModalOpen } = useAuth();
+  const { isAuthenticated, setLoginModalOpen } = useAuth();
   const { t, i18n } = useTranslation();
   const { selectedStore } = useStore();
   const { locationText, setLocationModalOpen, loading: locationLoading } = useLocation();
@@ -248,14 +248,14 @@ export default function Navbar() {
             <select 
               value={i18n.language}
               onChange={(e) => i18n.changeLanguage(e.target.value)}
-              className="bg-transparent text-[10px] lg:text-xs font-black text-gray-500 dark:text-gray-400 focus:outline-none cursor-pointer uppercase"
+              className="bg-transparent text-[10px] lg:text-xs font-black text-gray-500 dark:text-gray-400 focus:outline-none cursor-pointer"
             >
-              <option value="en">EN</option>
-              <option value="ta">TAM</option>
-              <option value="te">TEL</option>
-              <option value="kn">KAN</option>
-              <option value="ml">MAL</option>
-              <option value="hi">HIN</option>
+              <option value="en">English</option>
+              <option value="ta">Tamil (தமிழ்)</option>
+              <option value="te">Telugu (తెలుగు)</option>
+              <option value="kn">Kannada (ಕನ್ನಡ)</option>
+              <option value="ml">Malayalam (മലയാളം)</option>
+              <option value="hi">Hindi (हिंदी)</option>
             </select>
           </div>
 
@@ -271,6 +271,13 @@ export default function Navbar() {
             </button>
           ) : (
             <div className="flex items-center gap-2 lg:gap-3">
+              <Link 
+                href="/orders" 
+                title="My Orders"
+                className="p-2 text-emerald-600 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-xl transition-all"
+              >
+                <ClipboardList size={20} strokeWidth={2.5} />
+              </Link>
               <Link 
                 href="/wishlist" 
                 title="Wishlist"

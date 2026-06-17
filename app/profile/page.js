@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "../../context/AuthContext";
+import { useOrders } from "../../context/OrdersContext";
 import { 
   ShoppingBag, 
   MapPin, 
@@ -16,13 +17,20 @@ import { useTranslation } from "react-i18next";
 
 export default function ProfileOverview() {
   const { user } = useAuth();
+  const { orders } = useOrders();
   const { t } = useTranslation();
 
   const stats = [
-    { label: t('profile.totalOrders'), value: '12', icon: ShoppingBag, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-950/20' },
+    { label: t('profile.totalOrders'), value: orders?.length?.toString() || '0', icon: ShoppingBag, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-950/20' },
     { label: t('profile.savedAddresses'), value: '2', icon: MapPin, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/20' },
     { label: t('profile.savedCards'), value: '1', icon: CreditCard, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950/20' },
   ];
+
+  const formatOrderDate = (dateStr) => {
+    if (!dateStr) return 'Recently';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -64,18 +72,24 @@ export default function ProfileOverview() {
             <Link href="/orders" className="text-[10px] font-black text-emerald-600 hover:underline uppercase tracking-widest">{t('common.viewAll')}</Link>
           </div>
           <div className="divide-y divide-gray-50 dark:divide-gray-800">
-            {[1, 2, 3].map((_, i) => (
-              <div key={i} className="p-4 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">
+            {orders && orders.length > 0 ? orders.slice(0, 3).map((order, i) => (
+              <Link key={i} href={`/orders?orderId=${order.id || order._id}`} className="p-4 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer group/order">
+                <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 group-hover/order:bg-emerald-50 group-hover/order:text-emerald-600 transition-colors">
                   <Clock className="w-5 h-5" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-black text-gray-800 dark:text-gray-100">{t('profile.orderNumber', { id: `FK-9283${i}` })}</p>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">{t('profile.deliveredOn', { date: `1${i} May 2026` })}</p>
+                  <p className="text-sm font-black text-gray-800 dark:text-gray-100 group-hover/order:text-emerald-600 transition-colors">{order.id || `ORD-${String(order._id).substring(0,8).toUpperCase()}`}</p>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
+                    {order.status.toLowerCase() === 'delivered' ? 'Delivered on' : 'Placed on'} {formatOrderDate(order.createdAt || order.placedAt)}
+                  </p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-gray-300" />
+                <ChevronRight className="w-4 h-4 text-gray-300 group-hover/order:text-emerald-500 group-hover/order:translate-x-1 transition-all" />
+              </Link>
+            )) : (
+              <div className="p-8 text-center">
+                <p className="text-sm font-bold text-gray-400">No recent activity.</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
 
@@ -99,21 +113,36 @@ export default function ProfileOverview() {
       </div>
 
       {/* Rewards Teaser */}
-      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 rounded-[32px] border border-emerald-100 dark:border-emerald-800/30 p-8 flex flex-col md:flex-row items-center gap-8 shadow-sm">
-        <div className="w-20 h-20 shrink-0 bg-white dark:bg-gray-900 rounded-[28px] shadow-xl flex items-center justify-center text-4xl border border-emerald-200/50 dark:border-emerald-800/50">
-          🏆
-        </div>
-        <div className="flex-1 text-center md:text-left">
-          <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight mb-1">{t('profile.loyaltyProgramTier', { tier: 2 })}</h2>
-          <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest mb-4">{t('profile.coinsAway', { coins: 50, nextTier: 3 })}</p>
-          <div className="w-full h-2.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 w-[75%] rounded-full shadow-[0_0_12px_rgba(16,185,129,0.4)]" />
+      {(() => {
+        const totalCoins = orders.reduce((sum, order) => {
+          const amount = order.amount || order.total || 0;
+          return sum + Math.floor(amount / 10);
+        }, 0);
+        const currentTier = Math.floor(totalCoins / 500) + 1;
+        const coinsForNextTier = (currentTier * 500) - totalCoins;
+        const progressPercentage = ((totalCoins % 500) / 500) * 100;
+
+        return (
+          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 rounded-[32px] border border-emerald-100 dark:border-emerald-800/30 p-8 flex flex-col md:flex-row items-center gap-8 shadow-sm">
+            <div className="w-20 h-20 shrink-0 bg-white dark:bg-gray-900 rounded-[28px] shadow-xl flex items-center justify-center text-4xl border border-emerald-200/50 dark:border-emerald-800/50">
+              🏆
+            </div>
+            <div className="flex-1 text-center md:text-left">
+              <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight mb-1">Loyalty Program Tier {currentTier}</h2>
+              <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest mb-4">{coinsForNextTier} coins away from Tier {currentTier + 1}</p>
+              <div className="w-full h-2.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full shadow-[0_0_12px_rgba(16,185,129,0.4)] transition-all duration-1000" 
+                  style={{ width: `${progressPercentage}%` }} 
+                />
+              </div>
+            </div>
+            <Link href="/rewards" className="bg-gradient-to-br from-emerald-500 to-teal-500 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:brightness-110 shadow-lg shadow-emerald-500/20 shrink-0 active:scale-95 transition-all">
+              {t('profile.learnMore')}
+            </Link>
           </div>
-        </div>
-        <Link href="/rewards" className="bg-gradient-to-br from-emerald-500 to-teal-500 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:brightness-110 shadow-lg shadow-emerald-500/20 shrink-0 active:scale-95 transition-all">
-          {t('profile.learnMore')}
-        </Link>
-      </div>
+        );
+      })()}
     </div>
   );
 }

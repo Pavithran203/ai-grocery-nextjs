@@ -1,10 +1,13 @@
 import {
   categories, products, recommendedProducts, trendingProducts,
-  smartSuggestionsMap, bundleSuggestions, megaDeals, newArrivals
+  smartSuggestionsMap, bundleSuggestions, megaDeals, newArrivals,
+  orders as mockOrders
 } from './mockData';
 import { getSafeProductImage } from './imageUtils';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000/api';
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 let authToken = null;
 
@@ -56,7 +59,7 @@ const tryBackend = async (endpoint, fallback) => {
   try {
     const res = await fetch(`${API_URL}${endpoint}`, {
       cache: 'no-store',
-      signal: AbortSignal.timeout(4000), // 4s timeout for better reliability
+      signal: AbortSignal.timeout(300), // Reduced timeout to 300ms for instant fallback
     });
     if (!res.ok) throw new Error('Backend error');
     const data = await res.json();
@@ -67,8 +70,6 @@ const tryBackend = async (endpoint, fallback) => {
     return null;
   }
 };
-
-const delay = (ms) => new Promise(r => setTimeout(r, ms));
 
 const CATEGORY_MAP = {
   'rice & grains': 'rice-grains',
@@ -119,6 +120,12 @@ const normalizeCategory = (cat) => {
   return CATEGORY_MAP[normalized] || normalized;
 };
 
+const getLocalProductOverride = (backendProduct) => {
+  const id = backendProduct?._id || backendProduct?.id;
+  if (!id) return null;
+  return products.find((product) => String(product.id) === String(id)) || null;
+};
+
 const matchesCategory = (product, cat) => {
   const normalized = normalizeCategory(cat);
   if (!normalized) return true;
@@ -147,20 +154,29 @@ export const api = {
       email: userData.email,
       phone: userData.phone
     };
-    const data = await fetchWithAuth('/auth/register', { method: 'POST', body: JSON.stringify(payload) });
-    if (data.success) {
-      data.token = 'demo-token-' + uid;
+    try {
+      const data = await fetchWithAuth('/auth/register', { method: 'POST', body: JSON.stringify(payload) });
+      if (data.success) {
+        data.token = 'demo-token-' + uid;
+        if (typeof window !== 'undefined') localStorage.setItem(`mock_user_${userData.email}`, JSON.stringify(data.user || payload));
+      }
+      return data;
+    } catch (e) {
+      if (typeof window !== 'undefined') localStorage.setItem(`mock_user_${userData.email}`, JSON.stringify(payload));
+      return {
+        success: true,
+        user: payload,
+        token: 'demo-token-' + uid
+      };
     }
-    return data;
   },
   login: async (email, password) => {
-    // Since this is a demo environment without Firebase, we simulate login
-    // by using a predictable demo token based on email to fetch the profile
+    // Since this is a demo environment, we simulate login locally by returning a mock user.
     const uid = email.replace(/[^a-zA-Z0-9]/g, '_');
     const token = 'demo-token-' + uid;
+    const isAdmin = email.toLowerCase() === 'admin@freshkart.com';
 
-    // Temporarily set token to fetch profile
-    const previousToken = authToken;
+    // Keep the mock token for local state and demo API fallbacks.
     authToken = token;
 
     try {
@@ -170,9 +186,36 @@ export const api = {
       }
       throw new Error('User not found');
     } catch (e) {
-      authToken = previousToken;
-      // If user doesn't exist, we can register them automatically for demo purposes
-      return api.register({ name: email.split('@')[0], email, phone: '0000000000' });
+      if (isAdmin) {
+        return {
+          success: true,
+          user: {
+            _id: uid,
+            name: 'Admin Manager',
+            email,
+            role: 'admin',
+          },
+          token,
+        };
+      }
+
+      // Check if user was registered locally
+      let savedUser = null;
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem(`mock_user_${email}`);
+        if (stored) savedUser = JSON.parse(stored);
+      }
+
+      return {
+        success: true,
+        user: savedUser || {
+          _id: uid,
+          name: email.split('@')[0],
+          email,
+          phone: '0000000000',
+        },
+        token,
+      };
     }
   },
   getMe: async () => {
@@ -192,7 +235,6 @@ export const api = {
     return data.addresses;
   },
 
-  // ── Categories ──
   getCategories: async () => {
     const data = await tryBackend('/categories');
     if (data && data.categories && data.categories.length > 0) {
@@ -204,55 +246,76 @@ export const api = {
         icon: categories.find(fc => fc.name.toLowerCase() === c.name.toLowerCase())?.icon || '📦',
       }));
     }
-    await delay(200);
     return categories;
   },
 
   // ── Products ──
   getProducts: async (cat = null) => {
+    let customProducts = [];
+    if (typeof window !== 'undefined') {
+      try {
+        customProducts = JSON.parse(localStorage.getItem('nearmart_admin_products') || '[]');
+      } catch(e) {}
+    }
+    
+    // Create a merged list where custom products (by id) override or add to standard products
+    const mergedMap = new Map(products.map(p => [p.id, p]));
+    customProducts.forEach(p => mergedMap.set(p.id, p));
+    const allProducts = Array.from(mergedMap.values());
+
     const query = cat ? `?category=${encodeURIComponent(cat)}&limit=1000` : '?limit=1000';
     const data = await tryBackend(`/products${query}`);
+    
     if (data && data.products && data.products.length > 0) {
-      const mapped = data.products.map(mapBackendProduct);
+      const mapped = data.products.map((product) => {
+        const mappedProduct = mapBackendProduct(product);
+        const localOverride = getLocalProductOverride(product) || customProducts.find(cp => cp.id === mappedProduct.id);
+        return localOverride ? { ...mappedProduct, ...localOverride, id: mappedProduct.id } : mappedProduct;
+      });
       return cat ? mapped.filter(product => matchesCategory(product, cat)) : mapped;
     }
-    await delay(400);
-    return cat ? products.filter(product => matchesCategory(product, cat)) : products;
+    
+    return cat ? allProducts.filter(product => matchesCategory(product, cat)) : allProducts;
   },
 
   getProductById: async (id) => {
     const actualId = id.includes('__') ? id.split('__')[1] : id;
+    let customProducts = [];
+    if (typeof window !== 'undefined') {
+      try {
+        customProducts = JSON.parse(localStorage.getItem('nearmart_admin_products') || '[]');
+      } catch(e) {}
+    }
+
     const data = await tryBackend(`/products/${actualId}`);
     if (data && data.product) {
-      return mapBackendProduct(data.product);
+      const mappedProduct = mapBackendProduct(data.product);
+      const localOverride = getLocalProductOverride(data.product) || customProducts.find(cp => cp.id === mappedProduct.id);
+      return localOverride ? { ...mappedProduct, ...localOverride, id: mappedProduct.id } : mappedProduct;
     }
-    await delay(200);
-    return products.find(p => p.id === actualId);
+    
+    return customProducts.find(p => p.id === actualId) || products.find(p => p.id === actualId);
   },
 
   getRecommended: async () => {
     const data = await tryBackend('/products?recommended=true&limit=10');
     if (data && data.products && data.products.length > 0) return data.products.map(mapBackendProduct);
-    await delay(300);
     return recommendedProducts;
   },
 
   getTrending: async () => {
     const data = await tryBackend('/products?trending=true&limit=10');
     if (data && data.products && data.products.length > 0) return data.products.map(mapBackendProduct);
-    await delay(300);
     return trendingProducts;
   },
 
   getMegaDeals: async () => {
     const data = await tryBackend('/products?megaDeal=true&limit=12');
     if (data && data.products && data.products.length > 0) return data.products.map(mapBackendProduct);
-    await delay(200);
     return megaDeals;
   },
 
   getNewArrivals: async () => {
-    await delay(200);
     return newArrivals;
   },
 
@@ -264,18 +327,18 @@ export const api = {
         return data.suggestions.map(mapBackendProduct);
       }
     }
-    await delay(150);
     const seen = new Map();
-    cartItemIds.forEach(id => {
-      (smartSuggestionsMap[id] || []).forEach(p => {
-        if (p && !cartItemIds.includes(p.id)) seen.set(p.id, p);
+    cleanIds.forEach(id => {
+      const suggestedIds = smartSuggestionsMap[id] || [];
+      suggestedIds.forEach(sId => {
+        const prod = products.find(p => p.id === sId);
+        if (prod && !seen.has(sId)) seen.set(sId, prod);
       });
     });
-    return Array.from(seen.values()).slice(0, 6);
+    return Array.from(seen.values()).slice(0, 10);
   },
 
   getBundleSuggestions: async () => {
-    await delay(200);
     return bundleSuggestions;
   },
 
@@ -340,8 +403,13 @@ export const api = {
     return data.order;
   },
   getMyOrders: async () => {
-    const data = await fetchWithAuth('/orders');
-    return (data.orders || []).map(o => ({ ...o, id: o._id }));
+    try {
+      const data = await fetchWithAuth('/orders');
+      return (data.orders || []).map(o => ({ ...o, id: o._id }));
+    } catch (err) {
+      // Backend unavailable or auth failed. Use safe local mock orders instead of throwing.
+      return mockOrders.map((order) => ({ ...order, id: order._id || order.id }));
+    }
   },
 
   // --- Combos ---
@@ -369,7 +437,7 @@ export const api = {
 
 function mapBackendProduct(p) {
   // Find matching product in mockData to use its translations as a fallback
-  const mockProduct = products.find(mp => mp.name === p.name) || {};
+  const mockProduct = products.find(mp => mp.id === p._id || mp.id === p.id) || products.find(mp => mp.name === p.name) || {};
 
   const discount = p.originalPrice && p.originalPrice > p.price
     ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100)

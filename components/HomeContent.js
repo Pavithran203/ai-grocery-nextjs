@@ -9,10 +9,11 @@ import NearbyStores from './home/NearbyStores';
 import GroceryOffers from './home/GroceryOffers';
 import LiveTrackingCard from './home/LiveTrackingCard';
 import HeroSection from './home/HeroSection';
+import ComboOffers from './home/ComboOffers';
 import { useStore } from '@/context/StoreContext';
 import { products } from '@/services/mockData';
 
-export default function HomeContent({ allProducts = [] }) {
+export default function HomeContent({ allProducts = [], bundles = [] }) {
   const { 
     selectedStore, 
     matchedShops,
@@ -28,6 +29,9 @@ export default function HomeContent({ allProducts = [] }) {
       <div className="max-w-7xl mx-auto pb-32 space-y-12 lg:space-y-20 pt-8">
       {/* Live Tracking Overview (Only visible if active order) */}
       <LiveTrackingCard />
+
+      {/* Seasonal & Festival Combo Offers (Auto-hides if none active) */}
+      {/* <ComboOffers bundles={bundles} /> */}
 
       {/* Promotional Banners */}
       <PromoBanners />

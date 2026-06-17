@@ -39,7 +39,14 @@ export const AddressProvider = ({ children }) => {
           setDefaultAddressId(parsed.defaultAddressId || null);
         }
       } catch (e) {
-        console.error('AddressContext load error:', e);
+        // Suppress network fetch errors since the dummy backend isn't running
+        // Fallback to local storage
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setAddresses(parsed.addresses || []);
+          setDefaultAddressId(parsed.defaultAddressId || null);
+        }
       }
     };
     load();

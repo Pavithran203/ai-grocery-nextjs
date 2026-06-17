@@ -115,7 +115,23 @@ export default function CheckoutPage() {
       setGuestName(user.name || '');
       setGuestEmail(user.email || '');
       setGuestPhone(user.phone || '');
-      setStep(2); // Automatically skip "Who are you?" step
+      
+      let hasAddress = false;
+      const lastAddressStr = typeof window !== 'undefined' ? localStorage.getItem('freshkart_last_address') : null;
+      if (lastAddressStr) {
+        try {
+          const parsed = JSON.parse(lastAddressStr);
+          if (parsed.address && parsed.flatNo && parsed.pincode) {
+            setAddress(parsed.address);
+            setPincode(parsed.pincode);
+            setFlatNo(parsed.flatNo);
+            setLandmark(parsed.landmark || '');
+            hasAddress = true;
+          }
+        } catch (e) {}
+      }
+
+      setStep(hasAddress ? 3 : 2); // Automatically skip Address step if we have a saved address
       setAuthChecked(true);
     } else if (!user) {
       setAuthChecked(true);
@@ -180,12 +196,24 @@ export default function CheckoutPage() {
   const [cardExpiry, setCardExpiry] = useState('');
   const [cardCvv, setCardCvv]     = useState('');
 
+  // Result
+  const [loading, setLoading]         = useState(false);
+  const [orderResult, setOrderResult] = useState(null);
+  const [paymentError, setPaymentError] = useState('');
+
+  // ── Payment processing ──
+  const { addLocalOrder, orders } = useOrders();
+
   const applyCoupon = (code) => {
     const couponCode = code || couponInput;
     const coupon = COUPONS.find(c => c.code === couponCode);
     if (coupon) {
       if (subTotal < 200 && coupon.code === 'FRESH10') {
         setCouponError('Minimum order ₹200 for this coupon');
+        return;
+      }
+      if (coupon.code === 'FIRST50' && orders && orders.length > 0) {
+        setCouponError('This coupon is exclusively for your very first order!');
         return;
       }
       setAppliedCoupon(coupon);
@@ -198,20 +226,12 @@ export default function CheckoutPage() {
     }
   };
 
-  // Result
-  const [loading, setLoading]         = useState(false);
-  const [orderResult, setOrderResult] = useState(null);
-  const [paymentError, setPaymentError] = useState('');
-
   const subTotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const deliveryFee = subTotal >= 500 ? 0 : 40;
   const couponDiscount = appliedCoupon
     ? (appliedCoupon.flat ? appliedCoupon.discount : Math.round(subTotal * appliedCoupon.discount))
     : 0;
   const totalAmount = Math.max(0, subTotal + deliveryFee + tip - couponDiscount);
-
-  // ── Payment processing ──
-  const { addLocalOrder } = useOrders();
 
   const handlePayment = async (e) => {
     e.preventDefault();
@@ -230,28 +250,28 @@ export default function CheckoutPage() {
           pincode 
         },
         paymentMethod: paymentMethod,
-        notes: instruction
+        notes: instruction,
+        items: cartItems,
+        total: totalAmount,
+        subtotal: subTotal,
+        deliveryFee,
+        tax: 0
       };
 
+      let backendOrder = null;
       if (user && !user.isGuest) {
-        // Authenticated users go through real backend
-        const createdOrder = await api.createOrder(orderPayload);
-        if (createdOrder) {
-          resultOrder = createdOrder;
-        } else {
-          throw new Error('Failed to place order');
+        // Authenticated users attempt backend creation
+        try {
+          backendOrder = await api.createOrder(orderPayload);
+        } catch (e) {
+          console.warn("Backend order creation failed or backend unavailable, proceeding with local web order.");
         }
-      } else {
-        // Guests use fallback local order
-        resultOrder = await addLocalOrder({
-          ...orderPayload,
-          items: cartItems,
-          total: totalAmount,
-          subtotal: subTotal,
-          deliveryFee,
-          tax: 0,
-        });
       }
+
+      // ALWAYS save web orders locally to ensure profile reflects full details,
+      // as the mobile backend may drop items or not store web fields perfectly.
+      const finalPayload = backendOrder ? { ...orderPayload, id: backendOrder.id || backendOrder._id } : orderPayload;
+      resultOrder = await addLocalOrder(finalPayload);
 
       // Save for personalized home screen (Returning User logic)
       const lastOrder = {
@@ -519,7 +539,12 @@ export default function CheckoutPage() {
                     </div>
 
                     <button type="button" disabled={!flatNo || !address || pincode.length < 6}
-                      onClick={() => setStep(3)}
+                      onClick={() => {
+                        if (typeof window !== 'undefined') {
+                          localStorage.setItem('freshkart_last_address', JSON.stringify({ address, pincode, flatNo, landmark }));
+                        }
+                        setStep(3);
+                      }}
                       className="w-full bg-gradient-to-br from-[#16A34A] to-[#22C55E] text-white rounded-2xl py-5 font-black text-lg hover:brightness-110 transition-all shadow-[0_12px_25px_rgba(22,163,74,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 mt-4">
                       {t('common.continue')} <ChevronRight className="w-6 h-6" strokeWidth={3} />
                     </button>

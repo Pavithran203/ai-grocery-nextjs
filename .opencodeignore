@@ -1,0 +1,7 @@
+node_modules/
+.next/
+.netlify/
+.vercel/
+GroceryMob_app/
+GroceryMob_backend/
+Sample-back-main/

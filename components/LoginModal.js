@@ -1,11 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
-import { X, Apple, Play, ChevronDown, ArrowRight, Loader2, Leaf, ShieldCheck, ShoppingBag, Zap, Sparkles } from "lucide-react";
+import { X, Apple, Play, ChevronDown, ArrowRight, Loader2, Leaf, ShieldCheck, Zap, Sparkles } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "react-i18next";
 
 export default function LoginModal() {
-  const { isLoginModalOpen, setLoginModalOpen, loginWithOtp, login } = useAuth();
+  const { isLoginModalOpen, setLoginModalOpen, loginWithOtp } = useAuth();
   const { t } = useTranslation();
   
   const [phone, setPhone] = useState('');
@@ -16,9 +16,6 @@ export default function LoginModal() {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [isAdminMode, setIsAdminMode] = useState(false);
-  const [adminEmail, setAdminEmail] = useState('admin@freshkart.com');
-  const [adminPassword, setAdminPassword] = useState('admin@123');
 
   useEffect(() => {
     if (!isLoginModalOpen) {
@@ -74,18 +71,6 @@ export default function LoginModal() {
       } else {
         setError(result.message);
       }
-    }
-  };
-
-  const handleAdminLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    const result = await login(adminEmail, adminPassword);
-    setLoading(false);
-    if (result.success) {
-      setLoginModalOpen(false);
-    } else {
-      setError(result.message);
     }
   };
 
@@ -169,16 +154,19 @@ export default function LoginModal() {
                 <div className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ backgroundColor: '#10B981' }} />
                 <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#065F46' }}>{t('auth.secureAccess')}</span>
               </div>
-              <h2 className="text-4xl font-black text-black tracking-tighter leading-none mb-3">
-                {profileMode ? t('auth.helloThere') : (isAdminMode ? t('auth.adminLogin') : t('auth.letsGetStarted'))}
-              </h2>
-              <p className="text-sm font-black text-gray-600">
-                {profileMode ? t('auth.namePrompt') : t('auth.mobilePrompt')}
-              </p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-4xl font-black text-black tracking-tighter leading-none mb-3">
+                    {profileMode ? t('auth.helloThere') : t('auth.letsGetStarted')}
+                  </h2>
+                  <p className="text-sm font-black text-gray-600">
+                    {profileMode ? t('auth.namePrompt') : t('auth.mobilePrompt')}
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {!isAdminMode ? (
-              <form onSubmit={handleContinue} className="space-y-6">
+            <form onSubmit={handleContinue} className="space-y-6">
                 {!profileMode ? (
                   <div className="space-y-4">
                     <div className="bg-white border-2 border-gray-200 rounded-3xl p-1 flex items-center transition-all focus-within:border-emerald-600 focus-within:shadow-[0_15px_40px_-10px_rgba(0,0,0,0.1)] group">
@@ -254,34 +242,8 @@ export default function LoginModal() {
                   )}
                 </button>
               </form>
-            ) : (
-              <form onSubmit={handleAdminLogin} className="space-y-4 animate-fadeIn">
-                <input 
-                  type="text"
-                  value={adminEmail}
-                  onChange={(e) => setAdminEmail(e.target.value)}
-                  placeholder={t('auth.adminUsername', 'Admin Username')}
-                  className="w-full bg-white border-2 border-gray-200 rounded-3xl px-8 py-4 text-lg font-black text-black outline-none focus:border-emerald-600"
-                />
-                <input 
-                  type="password"
-                  value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
-                  placeholder={t('auth.adminPasswordLabel', 'Password')}
-                  className="w-full bg-white border-2 border-gray-200 rounded-3xl px-8 py-4 text-lg font-black text-black outline-none focus:border-emerald-600"
-                />
-                <button type="submit" className="w-full py-6 bg-gradient-to-br from-[#16A34A] to-[#22C55E] text-white font-black text-xl rounded-[24px] shadow-[0_15px_35px_rgba(22,163,74,0.3)] hover:brightness-110 transition-all">{t('auth.secureLogin', 'Secure Login')}</button>
-              </form>
-            )}
 
             <div className="mt-10 flex flex-col items-center gap-6">
-              <button 
-                onClick={() => setIsAdminMode(!isAdminMode)}
-                className="text-gray-500 hover:text-emerald-700 text-[10px] font-black uppercase tracking-widest transition-colors"
-              >
-                {isAdminMode ? t('auth.backToCustomer') : t('auth.adminPortal')}
-              </button>
-
               <p className="text-[11px] font-black text-gray-500 text-center max-w-xs leading-relaxed uppercase tracking-widest">
                 {t('auth.termsPrivacy')}
               </p>

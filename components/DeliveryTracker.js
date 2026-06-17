@@ -11,19 +11,14 @@ import "leaflet/dist/leaflet.css";
 import { useTranslation } from "react-i18next";
 
 // ─── Path Generator ───
-// Generates a simulated path from a nearby store to the customer's coordinates
-const generateDeliveryPath = (customerCoords) => {
-  const { latitude: lat, longitude: lng } = customerCoords || { latitude: 13.0827, longitude: 80.2707 }; // Default Chennai
-  
-  // Create a "store" slightly offset from the user (about 1.5km away)
-  const storeLat = lat + 0.008;
-  const storeLng = lng - 0.005;
-
+// Helper: Fallback mock path if OSRM fails
+const getFallbackPath = (lat, lng) => {
+  const storeLat = lat + 0.012;
+  const storeLng = lng - 0.008;
   return [
     { lat: storeLat, lng: storeLng, label: "FreshKart Store" },
-    { lat: storeLat - 0.002, lng: storeLng + 0.001, label: "" },
-    { lat: storeLat - 0.005, lng: storeLng + 0.003, label: "" },
-    { lat: lat + 0.001, lng: lng - 0.001, label: "" },
+    { lat: storeLat - 0.006, lng: storeLng + 0.004, label: "" },
+    { lat: lat + 0.002, lng: lng - 0.002, label: "" },
     { lat: lat, lng: lng, label: "Your Location" },
   ];
 };
@@ -76,9 +71,49 @@ function LeafletMapInner({ deliveryBoyPos, path }) {
 
   const storePos = path[0];
   const customerPos = path[path.length - 1];
-  const currentPos = path[deliveryBoyPos];
   const pathCoords = path.map(p => [p.lat, p.lng]);
   const center = [(storePos.lat + customerPos.lat) / 2, (storePos.lng + customerPos.lng) / 2];
+
+  const markerRef = useRef(null);
+
+  // Smoothly interpolate the delivery partner's position between points at 60fps
+  useEffect(() => {
+    let animationFrame;
+    let startTime = null;
+    const duration = 4000; // Matches the interval in the parent component
+
+    const targetPos = path[deliveryBoyPos];
+    const startPos = deliveryBoyPos > 0 ? path[deliveryBoyPos - 1] : path[0];
+
+    // If we're already at the end or haven't moved, just set it directly
+    if (deliveryBoyPos === 0 || startPos === targetPos) {
+      if (markerRef.current) {
+        markerRef.current.setLatLng([targetPos.lat, targetPos.lng]);
+      }
+      return;
+    }
+
+    const animate = (time) => {
+      if (!startTime) startTime = time;
+      const elapsed = time - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // Linear interpolation (lerp)
+      const currentLat = startPos.lat + (targetPos.lat - startPos.lat) * progress;
+      const currentLng = startPos.lng + (targetPos.lng - startPos.lng) * progress;
+
+      if (markerRef.current) {
+        markerRef.current.setLatLng([currentLat, currentLng]);
+      }
+
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [deliveryBoyPos, path]);
 
   return (
     <MapContainer
@@ -89,11 +124,11 @@ function LeafletMapInner({ deliveryBoyPos, path }) {
       attributionControl={false}
     >
       <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; OpenStreetMap'
+        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+        attribution='&copy; <a href="https://carto.com/">CARTO</a>'
       />
       {/* Route line */}
-      <Polyline positions={pathCoords} pathOptions={{ color: "#10B981", weight: 4, dashArray: "8,8", opacity: 0.7 }} />
+      <Polyline positions={pathCoords} pathOptions={{ color: "#10B981", weight: 5, opacity: 0.9 }} />
 
       {/* Store marker */}
       <Marker position={[storePos.lat, storePos.lng]} icon={storeIcon}>
@@ -105,8 +140,8 @@ function LeafletMapInner({ deliveryBoyPos, path }) {
         <Popup><b>🏠 {t('location.currentLocation', 'Your Location')}</b><br/>{t('checkout.deliveryAddress', 'Delivery address')}</Popup>
       </Marker>
 
-      {/* Delivery boy marker */}
-      <Marker position={[currentPos.lat, currentPos.lng]} icon={bikeIcon}>
+      {/* Delivery boy marker (Animated via Ref) */}
+      <Marker ref={markerRef} position={[path[0].lat, path[0].lng]} icon={bikeIcon}>
         <Popup><b>🛵 {t('tracking.deliveryPartner', 'Delivery Partner')}</b><br/>{t('tracking.onTheWay', 'On the way!')}</Popup>
       </Marker>
     </MapContainer>
@@ -146,26 +181,77 @@ export default function DeliveryTracker({ order }) {
     { id: 3, label: t('tracking.stageDelivered', 'Delivered'), icon: <Home className="w-5 h-5" />, color: "emerald", desc: t('tracking.stageDeliveredDesc', "Enjoy your fresh groceries! 🎉") },
   ], [t]);
 
-  // Generate dynamic path based on user coordinates
-  const path = useMemo(() => generateDeliveryPath(coords), [coords]);
-
-  // Simulate stage progression
+  // Real-world dynamic path fetching from OSRM
+  const [path, setPath] = useState([]);
   useEffect(() => {
-    const stageTimings = [2000, 4000, 6000];
+    let isMounted = true;
+    const fetchRoute = async () => {
+      const { latitude: lat, longitude: lng } = coords || { latitude: 13.0827, longitude: 80.2707 };
+      const storeLat = lat + 0.015;
+      const storeLng = lng - 0.010;
+      
+      try {
+        // Fetch actual road geometry from OSRM
+        const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${storeLng},${storeLat};${lng},${lat}?overview=full&geometries=geojson`);
+        const data = await res.json();
+        if (data && data.routes && data.routes[0]) {
+          const coordsArr = data.routes[0].geometry.coordinates;
+          const mappedPath = coordsArr.map(c => ({ lat: c[1], lng: c[0] }));
+          if (isMounted) setPath(mappedPath);
+        } else {
+          throw new Error('No route found');
+        }
+      } catch(e) {
+        if (isMounted) setPath(getFallbackPath(lat, lng));
+      }
+    };
+    fetchRoute();
+    return () => { isMounted = false; };
+  }, [coords]);
+
+  // Simulate stage progression up to Out For Delivery
+  const { updateOrderStatus } = require('@/context/OrdersContext').useOrders();
+  
+  // Use a ref to always hold the latest update function without triggering re-renders
+  const updateRef = useRef(updateOrderStatus);
+  useEffect(() => {
+    updateRef.current = updateOrderStatus;
+  }, [updateOrderStatus]);
+
+  useEffect(() => {
+    const stageTimings = [3000, 4000]; // Reaches stage 2 (Out for delivery) in 7 seconds
     let currentStage = 0;
     const advance = () => {
-      if (currentStage < DELIVERY_STAGES.length - 1) {
+      if (currentStage < 2) {
         const timeout = setTimeout(() => {
           currentStage++;
           setStage(currentStage);
+          
+          // Map stage index to actual string statuses
+          const statusMap = ['confirmed', 'preparing', 'out_for_delivery'];
+          if (order && (order.id || order.orderId) && updateRef.current) {
+             updateRef.current(order.id || order.orderId, statusMap[currentStage]);
+          }
+
           advance();
-        }, stageTimings[currentStage] || 8000);
+        }, stageTimings[currentStage]);
         return timeout;
       }
     };
     const t = advance();
     return () => clearTimeout(t);
-  }, [DELIVERY_STAGES]);
+  }, [order]);
+
+  // Trigger Delivered (Stage 3) ONLY when bike reaches the destination
+  useEffect(() => {
+    if (path.length > 0 && deliveryBoyPos === path.length - 1 && stage === 2) {
+      setStage(3);
+      setTimeLeft(0);
+      if (order && (order.id || order.orderId) && updateRef.current) {
+         updateRef.current(order.id || order.orderId, 'delivered');
+      }
+    }
+  }, [deliveryBoyPos, path, stage, order]);
 
   // Countdown timer
   useEffect(() => {
@@ -175,17 +261,22 @@ export default function DeliveryTracker({ order }) {
     return () => clearInterval(intervalRef.current);
   }, []);
 
-  // Simulate delivery boy moving
+  // Simulate delivery boy moving along the real path ONLY when Out For Delivery
   useEffect(() => {
+    if (path.length === 0 || stage < 2) return;
+    
+    // Calculate speed based on total path points (roughly ~40 seconds total journey)
+    const intervalTime = Math.max(800, Math.floor(40000 / path.length)); 
+    
     posIntervalRef.current = setInterval(() => {
       setDeliveryBoyPos(prev => {
         if (prev < path.length - 1) return prev + 1;
         clearInterval(posIntervalRef.current);
         return prev;
       });
-    }, 4000);
+    }, intervalTime);
     return () => clearInterval(posIntervalRef.current);
-  }, [path]);
+  }, [path, stage]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-8 px-4">
@@ -219,24 +310,65 @@ export default function DeliveryTracker({ order }) {
           <p className="text-xs text-gray-400 mt-1">{t('tracking.transactionId', 'Transaction ID')}: {order?.transactionId || 'TXN-PENDING'}</p>
         </div>
 
-        {/* ETA Card */}
-        <div className="!bg-[#064E3B] rounded-[32px] p-8 text-white shadow-2xl shadow-emerald-900/30 border border-emerald-800/50">
-          <div className="flex items-center justify-between">
+        {/* Zepto-Style Order Status Card */}
+        <div className="bg-white dark:bg-gray-900 rounded-[28px] shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden relative">
+          {/* Top Tag */}
+          <div className="absolute top-4 right-4 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-md shadow-emerald-500/20">
+            <Sparkles size={12} /> On time
+          </div>
+
+          <div className="p-6 md:p-8 flex flex-col md:flex-row justify-between gap-6">
+            {/* Left: ETA and Status */}
             <div>
-              <p className="text-emerald-400 text-xs font-black uppercase tracking-widest mb-2">{t('tracking.estimatedDelivery', 'Estimated Delivery')}</p>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center">
-                  <Clock className="w-7 h-7 text-emerald-400" />
+              <p className="text-gray-500 dark:text-gray-400 font-bold text-sm mb-1">{t('tracking.arrivingIn', 'Arriving in')}</p>
+              <h2 className="text-5xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight mb-2">
+                {timeLeft} <span className="text-2xl">mins</span>
+              </h2>
+              <p className="text-xl font-black text-gray-900 dark:text-white leading-tight max-w-[200px]">
+                Your order is <span className="lowercase">{DELIVERY_STAGES[stage]?.label || 'getting ready'}</span>
+              </p>
+            </div>
+
+            {/* Right: Mock Promo / Ad & Coins Earned */}
+            <div className="flex flex-col gap-3 md:w-48">
+              <div className="bg-emerald-50/50 dark:bg-emerald-900/10 rounded-2xl p-4 border border-emerald-100/50 dark:border-emerald-800/30 flex flex-col justify-center text-center">
+                <div className="flex items-center justify-center gap-1 mb-2">
+                  <span className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[8px] font-black uppercase px-1.5 py-0.5 rounded-sm">NearMart</span>
+                  <span className="text-[10px] font-black text-gray-500">PLUS</span>
                 </div>
-                <span className="text-5xl font-black tracking-tight">{timeLeft} <span className="text-2xl text-emerald-400">{t('tracking.min', 'mins')}</span></span>
+                <p className="font-black text-sm text-gray-800 dark:text-gray-200 leading-tight">Switch to <span className="text-emerald-600">10% Savings</span></p>
+                <button className="mt-3 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider py-2 rounded-xl shadow-md shadow-emerald-500/20 hover:bg-emerald-600 transition-all">
+                  Apply Now
+                </button>
+              </div>
+              
+              {/* Coins Earned Banner */}
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200/50 dark:border-amber-700/30 rounded-2xl p-3 flex items-center justify-between shadow-sm">
+                <div className="flex items-center gap-2">
+                  <div className="text-xl">💰</div>
+                  <div>
+                    <p className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest">Loyalty Reward</p>
+                    <p className="text-xs font-bold text-amber-900 dark:text-amber-100">+{Math.floor((order?.total || order?.amount || 0) / 10)} Coins earned</p>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="text-right">
-              <div className="bg-black/20 rounded-2xl px-5 py-3 border border-white/5 backdrop-blur-md">
-                <p className="font-black text-xl text-white">{order?.estimatedDelivery || '15 mins'}</p>
-                <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider mt-0.5">{t('checkout.expressDeliveryPromise', 'Express delivery')}</p>
+          </div>
+
+          {/* Bottom Bar: View Map (Decorative scroll trigger) */}
+          <div className="bg-gray-50 dark:bg-gray-950 p-4 border-t border-gray-100 dark:border-gray-850 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600">
+                <MapPin size={18} />
               </div>
+              <span className="font-black text-gray-800 dark:text-gray-200 text-sm">Track your order</span>
             </div>
+            <button 
+              onClick={() => document.getElementById('live-map-section')?.scrollIntoView({ behavior: 'smooth' })}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase tracking-widest px-6 py-2.5 rounded-xl transition-all shadow-md shadow-emerald-600/20"
+            >
+              View Map
+            </button>
           </div>
         </div>
 
@@ -281,7 +413,7 @@ export default function DeliveryTracker({ order }) {
         </div>
 
         {/* Real Live Map */}
-        <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+        <div id="live-map-section" className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
           <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Navigation className="w-5 h-5 text-orange-500" />
@@ -293,8 +425,19 @@ export default function DeliveryTracker({ order }) {
             </span>
           </div>
 
-          {/* Real OpenStreetMap via Leaflet */}
-          <LeafletMap deliveryBoyPos={deliveryBoyPos} path={path} />
+          {/* The Map */}
+          <div className="w-full relative z-0">
+            {path.length > 0 ? (
+              <LeafletMap deliveryBoyPos={deliveryBoyPos} path={path} />
+            ) : (
+              <div className="h-[280px] bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center rounded-b-3xl">
+                <div className="text-center">
+                  <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                  <p className="text-sm font-bold text-gray-500">{t('tracking.loadingLiveMap', 'Loading live map...')}</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Delivery Boy Card */}
@@ -328,6 +471,34 @@ export default function DeliveryTracker({ order }) {
             </a>
           </div>
         </div>
+
+        {/* Order Details (Items List) */}
+        {order?.items && order.items.length > 0 && (
+          <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm">
+            <h2 className="font-black text-gray-800 dark:text-white text-lg mb-4">{t('cart.yourOrder', 'Order Details')}</h2>
+            <div className="space-y-4">
+              {order.items.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 overflow-hidden shrink-0">
+                    <img src={item.image_url || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&q=80&w=100'} alt={item.name} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-sm text-gray-900 dark:text-gray-100 truncate">{item.name}</p>
+                    <p className="text-xs text-gray-500 font-medium">Qty: {item.quantity}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-black text-sm text-gray-900 dark:text-white">₹{(item.price * item.quantity).toFixed(0)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-5 pt-4 border-t border-gray-100 dark:border-gray-800 flex justify-between items-center">
+              <span className="font-bold text-gray-600 dark:text-gray-400 text-sm">Total Paid</span>
+              <span className="font-black text-lg text-emerald-600 dark:text-emerald-400">₹{order.total || order.amount || 0}</span>
+            </div>
+          </div>
+        )}
 
         {/* Continue Shopping */}
         <div className="text-center pb-8">

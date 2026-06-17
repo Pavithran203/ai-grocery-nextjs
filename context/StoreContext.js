@@ -114,10 +114,29 @@ export const StoreProvider = ({ children }) => {
   }, [zipCode]);
 
   const getShopProducts = (allProducts, shop) => {
-    if (!shop) return allProducts;
+    let customProducts = [];
+    if (typeof window !== 'undefined') {
+      try {
+        customProducts = JSON.parse(localStorage.getItem('nearmart_admin_products') || '[]');
+      } catch (e) {}
+    }
+
+    // Merge standard products with custom admin products
+    const mergedMap = new Map();
+    (allProducts || []).forEach(p => {
+      const cleanId = p.id && p.id.includes('__') ? p.id.split('__')[1] : p.id;
+      mergedMap.set(cleanId, p);
+    });
+    customProducts.forEach(p => {
+      const cleanId = p.id && p.id.includes('__') ? p.id.split('__')[1] : p.id;
+      mergedMap.set(cleanId, p);
+    });
+    const finalProducts = Array.from(mergedMap.values()).filter(p => p.available !== false && !p.deleted);
+
+    if (!shop) return finalProducts;
     const seed = shop.shopSeed || shop.id || 'default-seed';
     const rng = seededRandom(seed);
-    const shuffled = seededShuffle(allProducts, rng);
+    const shuffled = seededShuffle(finalProducts, rng);
     
     return shuffled.map(p => ({
       ...p,
