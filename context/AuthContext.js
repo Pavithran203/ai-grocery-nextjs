@@ -16,8 +16,8 @@ export const AuthProvider = ({ children }) => {
 
   // Load saved auth on mount
   useEffect(() => {
-    const savedToken = localStorage.getItem('freshkart_token') || sessionStorage.getItem('freshkart_token');
-    const savedUser = localStorage.getItem('freshkart_user') || sessionStorage.getItem('freshkart_user');
+    const savedToken = localStorage.getItem('nearmart_token') || sessionStorage.getItem('nearmart_token');
+    const savedUser = localStorage.getItem('nearmart_user') || sessionStorage.getItem('nearmart_user');
     
     if (savedToken && savedUser) {
       try {
@@ -25,10 +25,10 @@ export const AuthProvider = ({ children }) => {
         setUser(JSON.parse(savedUser));
         setAuthToken(savedToken); // Set it in api service
       } catch (e) {
-        localStorage.removeItem('freshkart_token');
-        localStorage.removeItem('freshkart_user');
-        sessionStorage.removeItem('freshkart_token');
-        sessionStorage.removeItem('freshkart_user');
+        localStorage.removeItem('nearmart_token');
+        localStorage.removeItem('nearmart_user');
+        sessionStorage.removeItem('nearmart_token');
+        sessionStorage.removeItem('nearmart_user');
       }
     }
     setLoading(false);
@@ -42,8 +42,16 @@ export const AuthProvider = ({ children }) => {
         setToken(data.token);
         setUser(data.user);
         setAuthToken(data.token);
-        localStorage.setItem('freshkart_token', data.token);
-        localStorage.setItem('freshkart_user', JSON.stringify(data.user));
+        localStorage.setItem('nearmart_token', data.token);
+        localStorage.setItem('nearmart_user', JSON.stringify(data.user));
+
+        // Reset loyalty coins to 0 for a brand new register
+        const userId = data.user?._id || data.user?.id;
+        if (userId) {
+          localStorage.setItem(`nearmart_coins_${userId}`, '0');
+          localStorage.setItem(`nearmart_coins_history_${userId}`, '[]');
+        }
+
         return { success: true };
       }
       return { success: false, message: data.message || 'Registration failed' };
@@ -60,8 +68,8 @@ export const AuthProvider = ({ children }) => {
         setToken(data.token);
         setUser(data.user);
         setAuthToken(data.token);
-        localStorage.setItem('freshkart_token', data.token);
-        localStorage.setItem('freshkart_user', JSON.stringify(data.user));
+        localStorage.setItem('nearmart_token', data.token);
+        localStorage.setItem('nearmart_user', JSON.stringify(data.user));
         return { success: true };
       }
       return { success: false, message: data.message || 'Invalid credentials' };
@@ -75,11 +83,11 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setToken(null);
     setAuthToken(null);
-    localStorage.removeItem('freshkart_token');
-    localStorage.removeItem('freshkart_user');
+    localStorage.removeItem('nearmart_token');
+    localStorage.removeItem('nearmart_user');
     localStorage.removeItem('nearmart-admin-session');
-    sessionStorage.removeItem('freshkart_token');
-    sessionStorage.removeItem('freshkart_user');
+    sessionStorage.removeItem('nearmart_token');
+    sessionStorage.removeItem('nearmart_user');
     router.push('/');
   };
 
@@ -90,7 +98,7 @@ export const AuthProvider = ({ children }) => {
       const userData = await api.getMe();
       if (userData) {
         setUser(userData);
-        localStorage.setItem('freshkart_user', JSON.stringify(userData));
+        localStorage.setItem('nearmart_user', JSON.stringify(userData));
       }
     } catch (err) {
       // Failed to fetch user, might be token expired
@@ -106,7 +114,7 @@ export const AuthProvider = ({ children }) => {
       const updatedUser = await api.updateProfile(updates);
       if (updatedUser) {
         setUser(updatedUser);
-        localStorage.setItem('freshkart_user', JSON.stringify(updatedUser));
+        localStorage.setItem('nearmart_user', JSON.stringify(updatedUser));
         return { success: true, user: updatedUser };
       }
       return { success: false, message: 'Failed to update profile' };
@@ -124,13 +132,61 @@ export const AuthProvider = ({ children }) => {
     setUser(guestUser);
     setToken(guestToken);
     setAuthToken(guestToken);
-    sessionStorage.setItem('freshkart_user', JSON.stringify(guestUser));
-    sessionStorage.setItem('freshkart_token', guestToken);
+    sessionStorage.setItem('nearmart_user', JSON.stringify(guestUser));
+    sessionStorage.setItem('nearmart_token', guestToken);
     return { success: true };
   };
 
   const loginWithOtp = async (phone, otp, name = '', email = '') => {
-    // Left empty/mock since the backend might not support OTP yet
+    // Completely wipe out any old "Guest User" session before proceeding
+    localStorage.removeItem('nearmart_user');
+    localStorage.removeItem('nearmart_token');
+    sessionStorage.removeItem('nearmart_user');
+    sessionStorage.removeItem('nearmart_token');
+
+    if (name) {
+      // If they provided a name, create a real account for them
+      const userEmail = email || `user_${phone || Date.now()}@nearmart.com`;
+      const password = 'DemoPassword123!'; // Mock password since they used OTP
+      
+      // Try to register
+      const regRes = await register(name, userEmail, password, phone);
+      if (regRes.success) {
+        // Force the user object to have the name they just typed, even if the backend returns a fallback
+        const updatedUser = { ...regRes.user, name };
+        setUser(updatedUser);
+        localStorage.setItem('nearmart_user', JSON.stringify(updatedUser));
+
+        // Reset loyalty coins to 0 for a brand new signup!
+        const userId = updatedUser._id || updatedUser.id;
+        if (userId) {
+          localStorage.setItem(`nearmart_coins_${userId}`, '0');
+          localStorage.setItem(`nearmart_coins_history_${userId}`, '[]');
+        }
+
+        return { success: true };
+      }
+      
+      // If email/phone exists, try login
+      const logRes = await login(userEmail, password);
+      if (logRes.success) {
+        // Force the user object to have the name they just typed
+        const updatedUser = { ...logRes.user, name };
+        setUser(updatedUser);
+        localStorage.setItem('nearmart_user', JSON.stringify(updatedUser));
+
+        // Reset loyalty coins to 0 for a brand new profile setup!
+        const userId = updatedUser._id || updatedUser.id;
+        if (userId) {
+          localStorage.setItem(`nearmart_coins_${userId}`, '0');
+          localStorage.setItem(`nearmart_coins_history_${userId}`, '[]');
+        }
+
+        return { success: true };
+      }
+    }
+
+    // Fallback if absolutely no name provided or everything failed
     return continueAsGuest();
   };
 
