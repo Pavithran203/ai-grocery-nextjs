@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "setup": "node requirements/setup.js",
     "sync-theme": "node scripts/sync-theme.js",
     "dev": "next dev --turbo",
     "build": "next build",

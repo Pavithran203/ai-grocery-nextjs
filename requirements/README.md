@@ -1,9 +1,11 @@
-# NearMart - AI Grocery Delivery Web & Mobile App
+# NearMart Project Installation & Requirements Guide
 
-This repository contains the full-stack grocery delivery application structured as a monorepo:
+This repository contains a full-stack grocery delivery application structured as a monorepo:
 1. **Next.js Web Frontend** (Root Directory)
 2. **Express.js Backend** (`/GroceryMob_backend/backend`)
 3. **Expo / React Native App** (`/GroceryMob_app`)
+
+To ensure a smooth onboarding and resolve typical environment/installation issues for other developers, follow this guide.
 
 ---
 
@@ -33,16 +35,17 @@ From the root directory of the project, run:
 ```bash
 npm run setup
 ```
+*(If you haven't configured the script in package.json yet, you can run `node requirements/setup.js` directly).*
 
 ---
 
 ## 🛠 Manual Installation
 
-If you prefer to install packages manually:
+If you prefer to install packages manually or the automated script fails due to permission restrictions:
 
 ### 1. Web Frontend (Root)
 ```bash
-# Install dependencies
+# Navigate to the root directory and install dependencies
 npm install --legacy-peer-deps
 
 # Create env file from template if it doesn't exist
@@ -51,6 +54,7 @@ cp requirements/env-templates/frontend.env.example .env.local
 
 ### 2. Express Backend
 ```bash
+# Navigate to the backend directory
 cd GroceryMob_backend/backend
 
 # Install dependencies
@@ -62,6 +66,7 @@ cp ../../requirements/env-templates/backend.env.example .env
 
 ### 3. Expo Mobile App
 ```bash
+# Navigate to the mobile app directory
 cd GroceryMob_app
 
 # Install dependencies
