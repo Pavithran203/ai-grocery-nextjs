@@ -6,12 +6,27 @@ import Link from 'next/link';
 import { MapPin, Star, Clock, Search, X, Navigation, LocateFixed, Store, Heart, ArrowLeft, Loader2 } from 'lucide-react';
 import { useFavorites } from '../../context/FavoriteContext';
 import { useLocation } from '../../context/LocationContext';
+import { useLanguage } from '../../context/LanguageContext';
 import StoreFilters from '../../components/home/StoreFilters';
+import { getLocalizedStoreAddress } from '../../data/demoStores';
 
 export default function StoresPage() {
   const { t } = useTranslation();
   const { isFavorite, toggleFavorite } = useFavorites();
   const { coords: userCoords, hasLocation, requestLocation, permissionStatus } = useLocation();
+  const { language } = useLanguage();
+
+  const getLocalizedStoreName = (store) => {
+    const langMap = {
+      'தமிழ்': store.name_ta,
+      'മലയാളം': store.name_ml,
+      'తెలుగు': store.name_te,
+      'हिंदी': store.name_hi,
+      'ಕನ್ನಡ': store.name_kn,
+    };
+    return langMap[language] || store.name;
+  };
+
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMode, setFilterMode] = useState('nearby');
@@ -72,9 +87,9 @@ export default function StoresPage() {
         </Link>
         <div>
           <h1 className="text-3xl font-black">
-            {filterMode === 'all' ? t['allStores'] || 'All Stores' : 
-             filterMode === 'zip' ? 'Stores by ZIP' : 
-             'Nearby Stores'}
+            {filterMode === 'all' ? t('stores.allStores', 'All Stores') : 
+             filterMode === 'zip' ? t('stores.byZip', 'Stores by ZIP') : 
+             t('home.nearbyStores', 'Nearby Stores')}
           </h1>
           <p className="text-sm font-medium text-gray-500 mt-1">Discover trusted local grocery stores</p>
         </div>
@@ -111,14 +126,14 @@ export default function StoresPage() {
           className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-bold text-sm transition-all ${filterMode === 'zip' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
         >
           <MapPin size={16} />
-          ZIP Code
+          {t('stores.zipCode', 'ZIP Code')}
         </button>
         <button 
           onClick={handleAllPress}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-bold text-sm transition-all ${filterMode === 'all' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
         >
           <Store size={16} />
-          All
+          {t('stores.all', 'All')}
         </button>
       </div>
 
@@ -147,7 +162,7 @@ export default function StoresPage() {
             disabled={zipInput.length < 5}
             className="bg-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed text-white px-6 rounded-2xl font-black shadow-lg shadow-emerald-500/20 hover:brightness-110 active:scale-95 transition-all"
           >
-            Find Stores
+            {t('stores.findStores', 'Find Stores')}
           </button>
         </div>
       )}
@@ -164,8 +179,8 @@ export default function StoresPage() {
       {/* Count */}
       {displayStores.length > 0 && (
         <p className="text-sm font-bold text-gray-400 mb-6 px-1">
-          {displayStores.length} stores found
-          {filterMode === 'nearby' && hasLocation ? ' • nearby' : ''}
+          {displayStores.length} {t('stores.storesFound', 'stores found')}
+          {filterMode === 'nearby' && hasLocation ? ` • ${t('stores.nearby', 'nearby')}` : ''}
         </p>
       )}
 
@@ -195,7 +210,7 @@ export default function StoresPage() {
                   </button>
                 </div>
 
-                <h3 className="text-xl font-black text-gray-900 dark:text-white truncate mb-1">{store.name}</h3>
+                <h3 className="text-xl font-black text-gray-900 dark:text-white truncate mb-1">{getLocalizedStoreName(store)}</h3>
                 <div className="flex items-center gap-2 mb-4">
                   <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t[store.storeType] || store.storeType}</span>
                   <span className="w-1 h-1 rounded-full bg-gray-300"></span>
@@ -213,11 +228,11 @@ export default function StoresPage() {
                   <div className="flex items-center gap-1">
                     <Clock size={14} className={status.type === 'OPEN' ? "text-emerald-500" : status.type === 'CLOSING_SOON' ? "text-amber-500" : "text-rose-500"} />
                     <span className={status.type === 'OPEN' ? "text-emerald-600 dark:text-emerald-400" : status.type === 'CLOSING_SOON' ? "text-amber-600 dark:text-amber-400" : "text-rose-600 dark:text-rose-400 font-bold"}>
-                      {status.label}
+                      {status.type === 'OPEN' || status.type === 'CLOSING_SOON' ? t('home.openNow', 'Open Now') : status.type === 'CLOSING_SOON' ? t('home.closingSoon', 'Closing Soon') : status.type === 'CLOSED_TODAY' ? t('home.closedToday', 'Closed Today') : t('home.closedNow', 'Closed Now')}
                     </span>
                   </div>
                   <div className="w-full mt-1">
-                     <p className="text-xs font-bold text-gray-400 tracking-wide line-clamp-1">{store.address}</p>
+                     <p className="text-xs font-bold text-gray-400 tracking-wide line-clamp-1">{getLocalizedStoreAddress(store, language)}</p>
                   </div>
                 </div>
 
@@ -225,7 +240,7 @@ export default function StoresPage() {
                   href={`/store/${store.id}`}
                   className="w-full bg-gradient-to-br from-[#16A34A] to-[#22C55E] text-white rounded-2xl py-3.5 font-black text-center block hover:brightness-110 active:scale-95 transition-all shadow-[0_8px_20px_rgba(22,163,74,0.2)] mt-auto"
                 >
-                  Visit Store
+                  {t('stores.visitStore', 'Visit Store')}
                 </Link>
               </div>
             );

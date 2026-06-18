@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "sync-theme": "node scripts/sync-theme.js",
-    "dev": "next dev --webpack",
-    "build": "next build --webpack",
+    "dev": "next dev --turbo",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "seed": "npm run seed --prefix GroceryMob_backend/backend",

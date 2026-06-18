@@ -5,12 +5,27 @@ import { useTranslation } from 'react-i18next';
 import { useFavorites } from '@/context/FavoriteContext';
 import { storeService } from '@/services/storeService';
 import { useLocation } from '@/context/LocationContext';
+import { useLanguage } from '@/context/LanguageContext';
 import StoreFilters from './StoreFilters';
 import Link from 'next/link';
 
 export default function NearbyStores() {
   const { t } = useTranslation();
   const { isFavorite, toggleFavorite, favorites } = useFavorites();
+  const { language } = useLanguage();
+
+  // Pick the right name field based on active language
+  const getLocalizedStoreName = (store) => {
+    const langMap = {
+      'தமிழ்': store.name_ta,
+      'മലയാളം': store.name_ml,
+      'తెలుగు': store.name_te,
+      'हिंदी': store.name_hi,
+      'ಕನ್ನಡ': store.name_kn,
+    };
+    return langMap[language] || store.name;
+  };
+
 
   const [activeFilters, setActiveFilters] = useState([]);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -133,7 +148,7 @@ export default function NearbyStores() {
                 </div>
               </div>
 
-              <h3 className="text-xl font-black truncate mb-1 text-gray-900 dark:text-white">{store.name}</h3>
+              <h3 className="text-xl font-black truncate mb-1 text-gray-900 dark:text-white">{getLocalizedStoreName(store)}</h3>
               <div className="flex items-center gap-2 mb-6">
                 <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{storeTypeLabel}</span>
                 <span className="w-1 h-1 rounded-full bg-gray-300"></span>

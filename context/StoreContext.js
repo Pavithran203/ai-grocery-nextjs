@@ -20,7 +20,7 @@ export const useStore = () => {
 };
 
 // ── Meaningful shop name parts for random generation ──
-const SHOP_PREFIXES = ["FreshKart", "GreenBasket", "DailyFresh", "NatureMart", "HarvestHub", "PurePantry", "SpiceLane", "GrainVilla", "KisanMart", "VillageFresh", "OrganicNest", "FarmDirect"];
+const SHOP_PREFIXES = ["NearMart", "GreenBasket", "DailyFresh", "NatureMart", "HarvestHub", "PurePantry", "SpiceLane", "GrainVilla", "KisanMart", "VillageFresh", "OrganicNest", "FarmDirect"];
 const SHOP_SUFFIXES = ["Supermarket", "Grocers", "Fresh Store", "Mini Mart", "Express", "Provisions", "Market", "Essentials"];
 const AREA_NAMES = ["Main Road", "Cross Street", "Market Lane", "Temple Road", "Bus Stand Area", "Railway Nagar", "Lake View", "Park Avenue", "Gandhi Street", "Nehru Nagar", "Junction", "Colony"];
 
@@ -89,7 +89,7 @@ export const StoreProvider = ({ children }) => {
 
   // Initialize and react to zipCode changes
   useEffect(() => {
-    const savedShop = sessionStorage.getItem('freshkart_selected_shop');
+    const savedShop = sessionStorage.getItem('nearmart_selected_shop');
     const effectiveZip = zipCode || '600001';
     
     const shops = generateShopsForPincode(effectiveZip);
@@ -149,7 +149,7 @@ export const StoreProvider = ({ children }) => {
 
   const selectStore = (shop) => {
     setSelectedStore(shop);
-    sessionStorage.setItem('freshkart_selected_shop', JSON.stringify(shop));
+    sessionStorage.setItem('nearmart_selected_shop', JSON.stringify(shop));
   };
 
   return (

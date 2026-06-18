@@ -21,7 +21,7 @@ export default function SecurityPage() {
   
   const activeSessions = [
     { id: 1, device: 'Chrome on Windows', location: 'Chennai, India', time: 'Active now', isCurrent: true },
-    { id: 2, device: 'FreshKart App (iOS)', location: 'Chennai, India', time: '2 days ago', isCurrent: false },
+    { id: 2, device: 'NearMart App (iOS)', location: 'Chennai, India', time: '2 days ago', isCurrent: false },
     { id: 3, device: 'Safari on iPhone', location: 'Mumbai, India', time: '5 days ago', isCurrent: false },
   ];
 

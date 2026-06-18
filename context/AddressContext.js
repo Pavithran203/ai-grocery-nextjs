@@ -7,12 +7,14 @@ const AddressContext = createContext();
 
 export const useAddress = () => useContext(AddressContext);
 
-const STORAGE_KEY = 'freshkart_addresses';
+const STORAGE_KEY_PREFIX = 'nearmart_addresses_';
 
 export const AddressProvider = ({ children }) => {
   const [addresses, setAddresses] = useState([]);
   const [defaultAddressId, setDefaultAddressId] = useState(null);
   const { user } = useAuth();
+
+  const getStorageKey = () => user ? `${STORAGE_KEY_PREFIX}${user._id || user.id}` : null;
 
   // Load from backend or localStorage on mount/user change
   useEffect(() => {
@@ -32,20 +34,33 @@ export const AddressProvider = ({ children }) => {
         }
         
         // Fallback for guest or offline
-        const stored = localStorage.getItem(STORAGE_KEY);
+        const key = getStorageKey();
+        if (!key) {
+          setAddresses([]);
+          setDefaultAddressId(null);
+          return;
+        }
+
+        const stored = localStorage.getItem(key);
         if (stored) {
           const parsed = JSON.parse(stored);
           setAddresses(parsed.addresses || []);
           setDefaultAddressId(parsed.defaultAddressId || null);
+        } else {
+          setAddresses([]);
+          setDefaultAddressId(null);
         }
       } catch (e) {
         // Suppress network fetch errors since the dummy backend isn't running
         // Fallback to local storage
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          setAddresses(parsed.addresses || []);
-          setDefaultAddressId(parsed.defaultAddressId || null);
+        const key = getStorageKey();
+        if (key) {
+          const stored = localStorage.getItem(key);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            setAddresses(parsed.addresses || []);
+            setDefaultAddressId(parsed.defaultAddressId || null);
+          }
         }
       }
     };
@@ -54,8 +69,10 @@ export const AddressProvider = ({ children }) => {
 
   // Save to localStorage for guests
   const persistLocal = (addrs, defId) => {
+    const key = getStorageKey();
+    if (!key) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ addresses: addrs, defaultAddressId: defId }));
+      localStorage.setItem(key, JSON.stringify({ addresses: addrs, defaultAddressId: defId }));
     } catch (e) {
       console.error('AddressContext save error:', e);
     }

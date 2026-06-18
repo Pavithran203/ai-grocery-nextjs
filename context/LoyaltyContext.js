@@ -2,6 +2,7 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from './AuthContext';
 
 const LoyaltyContext = createContext(null);
 
@@ -13,47 +14,71 @@ export const useLoyalty = () => {
   return context;
 };
 
-const LOYALTY_COINS_KEY = 'freshkart_coins';
-const LOYALTY_HISTORY_KEY = 'freshkart_coins_history';
+const LOYALTY_COINS_PREFIX = 'nearmart_coins_';
+const LOYALTY_HISTORY_PREFIX = 'nearmart_coins_history_';
 
 export const LoyaltyProvider = ({ children }) => {
   const { t } = useTranslation();
+  const { user } = useAuth(); // Import user to scope the cache
   const [coins, setCoins] = useState(0);
   const [history, setHistory] = useState([]);
   const coinsRef = React.useRef(0);
+
+  // Dynamic keys based on user ID or 'guest'
+  const getCoinsKey = () => user ? `${LOYALTY_COINS_PREFIX}${user._id || user.id}` : null;
+  const getHistoryKey = () => user ? `${LOYALTY_HISTORY_PREFIX}${user._id || user.id}` : null;
 
   React.useEffect(() => {
     coinsRef.current = coins;
   }, [coins]);
 
   useEffect(() => {
+    const coinsKey = getCoinsKey();
+    const historyKey = getHistoryKey();
+
+    if (!coinsKey || !historyKey) {
+      setCoins(0);
+      setHistory([]);
+      coinsRef.current = 0;
+      return;
+    }
+
     try {
-      const storedCoins = localStorage.getItem(LOYALTY_COINS_KEY);
+      const storedCoins = localStorage.getItem(coinsKey);
       if (storedCoins !== null) {
         const parsed = parseInt(storedCoins, 10);
         if (!isNaN(parsed)) {
           setCoins(parsed);
           coinsRef.current = parsed;
         }
+      } else {
+        setCoins(0);
+        coinsRef.current = 0;
       }
 
-      const storedHistory = localStorage.getItem(LOYALTY_HISTORY_KEY);
+      const storedHistory = localStorage.getItem(historyKey);
       if (storedHistory) {
         setHistory(JSON.parse(storedHistory));
+      } else {
+        setHistory([]);
       }
     } catch (error) {
       console.error("Failed to load loyalty data", error);
     }
-  }, []);
+  }, [user]);
 
   const persistData = useCallback((newTotal, newHistory) => {
+    const coinsKey = getCoinsKey();
+    const historyKey = getHistoryKey();
+    if (!coinsKey || !historyKey) return;
+
     try {
-      localStorage.setItem(LOYALTY_COINS_KEY, newTotal.toString());
-      localStorage.setItem(LOYALTY_HISTORY_KEY, JSON.stringify(newHistory));
+      localStorage.setItem(coinsKey, newTotal.toString());
+      localStorage.setItem(historyKey, JSON.stringify(newHistory));
     } catch (e) {
       console.error("Failed to save loyalty data", e);
     }
-  }, []);
+  }, [user]);
 
   const addCoins = useCallback((amount, desc) => {
     const finalDesc = desc || t('loyalty.earnedFromOrder');

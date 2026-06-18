@@ -1,19 +1,28 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
 
 const WishlistContext = createContext();
 
 export const useWishlist = () => useContext(WishlistContext);
 
-const STORAGE_KEY = 'freshkart_wishlist';
+const STORAGE_KEY_PREFIX = 'nearmart_wishlist_';
 
 export const WishlistProvider = ({ children }) => {
   const [wishlist, setWishlist] = useState([]);
+  const { user } = useAuth(); // Scoped to user
+
+  const getStorageKey = () => user ? `${STORAGE_KEY_PREFIX}${user._id || user.id}` : null;
 
   useEffect(() => {
     const loadWishlist = () => {
+      const key = getStorageKey();
+      if (!key) {
+        setWishlist([]);
+        return;
+      }
       try {
-        const stored = localStorage.getItem(STORAGE_KEY);
+        const stored = localStorage.getItem(key);
         if (stored) {
           setWishlist(JSON.parse(stored));
         }
@@ -22,11 +31,13 @@ export const WishlistProvider = ({ children }) => {
       }
     };
     loadWishlist();
-  }, []);
+  }, [user]);
 
   const saveWishlist = (items) => {
+    const key = getStorageKey();
+    if (!key) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      localStorage.setItem(key, JSON.stringify(items));
     } catch (e) {
       console.error('Wishlist save error', e);
     }

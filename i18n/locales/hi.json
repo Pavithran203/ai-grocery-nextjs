@@ -111,7 +111,7 @@
     "trendingNearYou": "आपके पास ट्रेंडिंग",
     "inSeason": "सीज़नल · इस सप्ताह लोकप्रिय",
     "newArrivals": "नई आवक",
-    "justAdded": "FreshKart में अभी जोड़ा गया",
+    "justAdded": "NearMart में अभी जोड़ा गया",
     "peopleViewing": "लोग देख रहे हैं",
     "ordersRecently": "ऑर्डर हाल ही में",
     "inCart": "कार्ट में",
@@ -221,7 +221,7 @@
     "signIn": "साइन इन",
     "createAccount": "खाता बनाएं",
     "welcomeBack": "वापसी पर स्वागत है",
-    "joinFreshKart": "स्मार्ट किराना खरीदारी के लिए फ्रेशकार्ट से जुड़ें",
+    "joinFreshKart": "स्मार्ट किराना खरीदारी के लिए नियरमार्ट से जुड़ें",
     "signInToAccess": "अपने स्मार्ट कार्ट और AI अनुशंसाओं तक पहुंचने के लिए साइन इन करें।",
     "phoneOptional": "फोन (वैकल्पिक)",
     "rememberMe": "मुझे याद रखें",
@@ -361,5 +361,17 @@
     "loyaltyProgramTier": "लोयल्टी प्रोग्राम टियर {{tier}}",
     "coinsAway": "आप टियर {{nextTier}} लाभों से केवल {{coins}} सिक्के दूर हैं!",
     "learnMore": "और जानें"
+  },
+  "stores": {
+    "visitStore": "स्टोर देखें",
+    "allStores": "सभी स्टोर",
+    "byZip": "ZIP से स्टोर",
+    "zipCode": "ZIP कोड",
+    "all": "सभी",
+    "findStores": "स्टोर ढूंढें",
+    "storesFound": "स्टोर मिले",
+    "nearby": "नजदीक",
+    "backToStores": "स्टोर पर वापस जाएं",
+    "productsFrom": "{{store}} के उत्पाद"
   }
 }

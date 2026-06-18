@@ -34,7 +34,7 @@ export default function ProductDetailContent({ product, isModal = false }) {
       <div className="w-full lg:w-[58%] p-6 lg:p-10 flex flex-col">
         {/* Breadcrumb / Category */}
         <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.15em] mb-3 text-emerald-600">
-           <span className="text-gray-400">FreshKart</span>
+           <span className="text-gray-400">NearMart</span>
            <span className="w-1 h-1 rounded-full bg-gray-300"></span>
            <span className="text-gray-400">{t(`categories.${product.category.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_')}`, product.category)}</span>
         </div>

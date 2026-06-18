@@ -25,7 +25,7 @@ const fetchWithAuth = async (endpoint, options = {}) => {
   // Try to get token from variable or localStorage
   let token = authToken;
   if (!token && typeof window !== 'undefined') {
-    token = localStorage.getItem('freshkart_token') || sessionStorage.getItem('freshkart_token');
+    token = localStorage.getItem('nearmart_token') || sessionStorage.getItem('nearmart_token');
     if (token) authToken = token;
   }
 
@@ -162,19 +162,15 @@ export const api = {
       }
       return data;
     } catch (e) {
-      if (typeof window !== 'undefined') localStorage.setItem(`mock_user_${userData.email}`, JSON.stringify(payload));
-      return {
-        success: true,
-        user: payload,
-        token: 'demo-token-' + uid
-      };
+      // Do NOT silently return success. Let AuthContext handle the fallback!
+      throw new Error(e.message || 'Registration failed');
     }
   },
   login: async (email, password) => {
     // Since this is a demo environment, we simulate login locally by returning a mock user.
     const uid = email.replace(/[^a-zA-Z0-9]/g, '_');
     const token = 'demo-token-' + uid;
-    const isAdmin = email.toLowerCase() === 'admin@freshkart.com';
+    const isAdmin = email.toLowerCase() === 'admin@nearmart.com';
 
     // Keep the mock token for local state and demo API fallbacks.
     authToken = token;
@@ -407,8 +403,9 @@ export const api = {
       const data = await fetchWithAuth('/orders');
       return (data.orders || []).map(o => ({ ...o, id: o._id }));
     } catch (err) {
-      // Backend unavailable or auth failed. Use safe local mock orders instead of throwing.
-      return mockOrders.map((order) => ({ ...order, id: order._id || order.id }));
+      // Backend unavailable or auth failed. Do not leak global mock orders!
+      // Return an empty array so the user's local scoped orders represent the source of truth.
+      return [];
     }
   },
 

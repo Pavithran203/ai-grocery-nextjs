@@ -4,10 +4,11 @@ import {
   X, Navigation, Loader2, ArrowRight, Home,
   Building2, MapPin, ChevronRight, LocateFixed,
   Plus, Edit3, Trash2, CheckCircle, Phone, User,
-  ArrowLeft, Map as MapIcon
+  ArrowLeft, Map as MapIcon, ShieldCheck
 } from "lucide-react";
 import { useAddress } from "@/context/AddressContext";
 import { useLocation } from "@/context/LocationContext";
+import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "react-i18next";
 import dynamic from 'next/dynamic';
 
@@ -47,7 +48,7 @@ const LABEL_OPTIONS = [
 /* ═══════════════════════════════════════
    SUB-COMPONENTS
    ═══════════════════════════════════════ */
-const FormField = ({ label, value, onChange, placeholder, error, icon: Icon, type = 'text', maxLength }) => (
+const FormField = ({ label, value, onChange, placeholder, error, icon: Icon, type = 'text', maxLength, action }) => (
   <div className="loc-field">
     <label className="loc-field-label">{label}</label>
     <div className="loc-field-input-wrap">
@@ -58,8 +59,13 @@ const FormField = ({ label, value, onChange, placeholder, error, icon: Icon, typ
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         maxLength={maxLength}
-        className={`loc-field-input ${Icon ? 'has-icon' : ''} ${error ? 'has-error' : ''}`}
+        className={`loc-field-input ${Icon ? 'has-icon' : ''} ${error ? 'has-error' : ''} ${action ? 'has-action' : ''}`}
       />
+      {action && (
+        <div className="loc-field-action-wrap">
+          {action}
+        </div>
+      )}
     </div>
     {error && <p className="loc-field-error">{error}</p>}
   </div>
@@ -148,9 +154,10 @@ export default function LocationModal() {
     formatAddress,
   } = useAddress();
 
+  const { isAuthenticated, setLoginModalOpen, loginWithOtp } = useAuth();
   const { t } = useTranslation();
 
-  // Steps: 'menu' | 'map' | 'form'
+  // Steps: 'menu' | 'map' | 'form' | 'otp'
   const [step, setStep] = useState('menu');
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -158,6 +165,14 @@ export default function LocationModal() {
   const [fetchingLocation, setFetchingLocation] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [saving, setSaving] = useState(false);
+
+  // OTP specific state for inline verification
+  const [otp, setOtp] = useState('');
+  const [pendingAddress, setPendingAddress] = useState(null);
+  const [otpError, setOtpError] = useState('');
+  const [inlineOtp, setInlineOtp] = useState('');
+  const [showInlineOtp, setShowInlineOtp] = useState(false);
+  const [inlineOtpError, setInlineOtpError] = useState('');
 
   // Reset state when modal opens
   useEffect(() => {
@@ -169,6 +184,12 @@ export default function LocationModal() {
       setFetchingLocation(false);
       setDeleteConfirmId(null);
       setSaving(false);
+      setOtp('');
+      setPendingAddress(null);
+      setOtpError('');
+      setInlineOtp('');
+      setShowInlineOtp(false);
+      setInlineOtpError('');
     }
   }, [isOpen]);
 
@@ -188,6 +209,49 @@ export default function LocationModal() {
     if (!form.city.trim()) e.city = t('location.cityRequired', 'City is required');
     if (!form.pincode.trim()) e.pincode = t('location.pincodeRequired', 'Pincode is required');
     return e;
+  };
+
+  const handleVerifyPhoneClick = () => {
+    if (!form.phone.trim()) {
+      setErrors({ phone: t('location.phoneRequired', 'Phone is required') });
+      return;
+    }
+    if (form.phone.trim().length !== 10) {
+      setErrors({ phone: t('auth.invalidPhone', 'Please enter a valid 10-digit phone number') });
+      return;
+    }
+    
+    setShowInlineOtp(true);
+    setInlineOtp('');
+    setInlineOtpError('');
+  };
+
+  const handleInlineOtpVerify = async () => {
+    if (!inlineOtp || inlineOtp.length < 4) {
+      setInlineOtpError(t('auth.invalidOtp', 'Invalid OTP. Use 1234 for testing.'));
+      return;
+    }
+    if (inlineOtp === '1234' || inlineOtp === '0000') {
+      setSaving(true);
+      setInlineOtpError('');
+      try {
+        const result = await loginWithOtp(form.phone, inlineOtp, form.fullName || 'Valued Customer');
+        if (result.success) {
+          setSaving(false);
+          setShowInlineOtp(false);
+          setInlineOtp('');
+          if (errors.phone) setErrors(prev => ({ ...prev, phone: null }));
+        } else {
+          setSaving(false);
+          setInlineOtpError(result.message || 'Verification failed');
+        }
+      } catch (err) {
+        setSaving(false);
+        setInlineOtpError(err.message || 'Verification failed');
+      }
+    } else {
+      setInlineOtpError(t('auth.invalidOtp', 'Invalid OTP. Use 1234 for testing.'));
+    }
   };
 
   /* ── Actions ── */
@@ -214,17 +278,23 @@ export default function LocationModal() {
     setStep('form');
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const e = validate();
     if (Object.keys(e).length > 0) { setErrors(e); return; }
+ 
+    if (!isAuthenticated) {
+      setShowInlineOtp(true);
+      setInlineOtpError(t('auth.verifyPhoneFirst', 'Please verify your phone number via OTP to save this address'));
+      return;
+    }
+ 
     setSaving(true);
-
     if (editingId) {
       updateAddress(editingId, form);
     } else {
       addAddress(form);
     }
-
+ 
     // Update location text from the saved address
     const text = [form.city, form.state].filter(Boolean).join(', ');
     if (text) setLocationText(text);
@@ -233,6 +303,49 @@ export default function LocationModal() {
       setSaving(false);
       onClose();
     }, 300);
+  };
+
+  const handleOtpVerify = async () => {
+    if (!otp || otp.length < 4) {
+      setOtpError(t('auth.invalidOtp', 'Invalid OTP. Use 1234 for testing.'));
+      return;
+    }
+    if (otp === '1234' || otp === '0000') {
+      setSaving(true);
+      setOtpError('');
+      try {
+        const result = await loginWithOtp(pendingAddress.phone, otp, pendingAddress.fullName || 'Valued Customer');
+        if (result.success) {
+          // Check if the address was fully entered or if it was just an inline verification
+          if (!pendingAddress.fullName.trim() || !pendingAddress.line1.trim() || !pendingAddress.city.trim() || !pendingAddress.pincode.trim()) {
+            // Not a complete address, so just return to the form now that we are authenticated!
+            setSaving(false);
+            setStep('form');
+            return;
+          }
+
+          // Add address under the newly logged in user
+          await addAddress(pendingAddress);
+
+          // Update location text
+          const text = [pendingAddress.city, pendingAddress.state].filter(Boolean).join(', ');
+          if (text) setLocationText(text);
+
+          setTimeout(() => {
+            setSaving(false);
+            onClose();
+          }, 300);
+        } else {
+          setSaving(false);
+          setOtpError(result.message || 'Verification failed');
+        }
+      } catch (err) {
+        setSaving(false);
+        setOtpError(err.message || 'Verification failed');
+      }
+    } else {
+      setOtpError(t('auth.invalidOtp', 'Invalid OTP. Use 1234 for testing.'));
+    }
   };
 
   const handleDelete = (id) => {
@@ -299,11 +412,13 @@ export default function LocationModal() {
 
   const stepTitle = step === 'form'
     ? (editingId ? t('location.editAddress') : t('location.newAddress'))
-    : step === 'map' ? t('location.pickLocation') : t('location.deliveryLocation');
+    : step === 'map' ? t('location.pickLocation')
+    : t('location.deliveryLocation');
 
   const stepSubtitle = step === 'form'
     ? t('location.enterDeliveryDetails')
-    : step === 'map' ? t('location.tapMapToPlacePin') : t('location.selectDeliveryArea');
+    : step === 'map' ? t('location.tapMapToPlacePin')
+    : t('location.selectDeliveryArea');
 
   return (
     <div className="loc-overlay" onClick={onClose}>
@@ -315,7 +430,7 @@ export default function LocationModal() {
             {step !== 'menu' && (
               <button
                 className="loc-back-btn"
-                onClick={() => setStep(step === 'form' ? 'menu' : 'menu')}
+                onClick={() => setStep('menu')}
               >
                 <ArrowLeft size={18} />
               </button>
@@ -368,6 +483,25 @@ export default function LocationModal() {
                 </div>
                 <ArrowRight size={16} className="loc-action-arrow" />
               </button>
+
+              {/* Login Prompt for Guests */}
+              {!isAuthenticated && (
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    onClose();
+                    setLoginModalOpen(true);
+                  }}
+                  className="loc-login-prompt"
+                >
+                  <User size={16} className="text-emerald-600 shrink-0" />
+                  <div className="loc-login-prompt-text">
+                    <p className="loc-login-prompt-title">{t('auth.loginToSeeSavedAddresses', 'Login to see saved addresses')}</p>
+                    <p className="loc-login-prompt-sub">{t('auth.loginToSeeSavedAddressesSub', 'Access your saved home, work, and other addresses')}</p>
+                  </div>
+                  <ChevronRight size={14} className="loc-login-prompt-arrow" />
+                </button>
+              )}
 
               {/* Divider */}
               {addresses.length > 0 && (
@@ -458,7 +592,50 @@ export default function LocationModal() {
                 icon={Phone}
                 type="tel"
                 maxLength={10}
+                action={!isAuthenticated && form.phone.length === 10 ? (
+                  <button
+                    type="button"
+                    onClick={handleVerifyPhoneClick}
+                    className="loc-field-action-btn"
+                  >
+                    Verify & Login
+                  </button>
+                ) : isAuthenticated ? (
+                  <span className="text-emerald-600 font-bold text-xs flex items-center gap-1 mr-3">
+                    <CheckCircle size={14} className="fill-emerald-100 dark:fill-emerald-950" /> Verified
+                  </span>
+                ) : null}
               />
+              {showInlineOtp && !isAuthenticated && (
+                <div className="animate-fadeIn">
+                  <FormField
+                    label={t('auth.otpCodePlaceholder', 'OTP Code')}
+                    value={inlineOtp}
+                    onChange={(val) => {
+                      setInlineOtp(val.replace(/\D/g, '').slice(0, 4));
+                      if (inlineOtpError) setInlineOtpError('');
+                    }}
+                    placeholder="Enter 4-digit code (e.g. 1234)"
+                    error={inlineOtpError}
+                    icon={ShieldCheck}
+                    type="text"
+                    maxLength={4}
+                    action={inlineOtp.length === 4 ? (
+                      <button
+                        type="button"
+                        onClick={handleInlineOtpVerify}
+                        className="loc-field-action-btn"
+                        disabled={saving}
+                      >
+                        {saving ? 'Verifying...' : 'Verify'}
+                      </button>
+                    ) : null}
+                  />
+                  <p className="text-right mr-2 mt-1 text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                    Use 1234 or 0000 for testing
+                  </p>
+                </div>
+              )}
               <FormField
                 label={t('location.houseFlatBlock')}
                 value={form.line1}

@@ -2,6 +2,7 @@
 
 import { useAuth } from "../../context/AuthContext";
 import { useOrders } from "../../context/OrdersContext";
+import { useLoyalty } from "../../context/LoyaltyContext";
 import { 
   ShoppingBag, 
   MapPin, 
@@ -18,12 +19,13 @@ import { useTranslation } from "react-i18next";
 export default function ProfileOverview() {
   const { user } = useAuth();
   const { orders } = useOrders();
+  const { coins } = useLoyalty();
   const { t } = useTranslation();
 
   const stats = [
     { label: t('profile.totalOrders'), value: orders?.length?.toString() || '0', icon: ShoppingBag, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-950/20' },
-    { label: t('profile.savedAddresses'), value: '2', icon: MapPin, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/20' },
-    { label: t('profile.savedCards'), value: '1', icon: CreditCard, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950/20' },
+    { label: t('profile.savedAddresses'), value: (user?.addresses?.length || 0).toString(), icon: MapPin, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/20' },
+    { label: t('profile.savedCards'), value: '0', icon: CreditCard, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950/20' },
   ];
 
   const formatOrderDate = (dateStr) => {
@@ -114,10 +116,8 @@ export default function ProfileOverview() {
 
       {/* Rewards Teaser */}
       {(() => {
-        const totalCoins = orders.reduce((sum, order) => {
-          const amount = order.amount || order.total || 0;
-          return sum + Math.floor(amount / 10);
-        }, 0);
+        // Use the actual scoped loyalty coins instead of manually deriving it globally
+        const totalCoins = coins || 0;
         const currentTier = Math.floor(totalCoins / 500) + 1;
         const coinsForNextTier = (currentTier * 500) - totalCoins;
         const progressPercentage = ((totalCoins % 500) / 500) * 100;

@@ -32,7 +32,7 @@ export default function SettingsPage() {
     <div className="space-y-8 animate-fadeIn">
       <div>
         <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter mb-1">Preferences</h1>
-        <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Customize your FreshKart experience</p>
+        <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Customize your NearMart experience</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -160,7 +160,7 @@ export default function SettingsPage() {
       </div>
 
       <div className="text-center pt-8">
-        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">FreshKart Web Version 2.4.0</p>
+        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">NearMart Web Version 2.4.0</p>
       </div>
     </div>
   );

@@ -9,8 +9,8 @@ export const useLocation = () => useContext(LocationContext);
 
 export const LocationProvider = ({ children }) => {
   const [locationText, setLocationText] = useState('');
-  // Default to the geographic center of all 25 Chennai stores (Guindy/Saidapet area)
-  const [coords, setCoords] = useState({ latitude: 13.0071, longitude: 80.2200 });
+  // Default to null, will fallback to Chennai geographic center if user denies geolocation or fails
+  const [coords, setCoords] = useState(null);
   const [zipCode, setZipCode] = useState('');
   const [permissionStatus, setPermissionStatus] = useState('undetermined');
   const [loading, setLoading] = useState(true);
@@ -25,7 +25,12 @@ export const LocationProvider = ({ children }) => {
     const savedCoords = localStorage.getItem('fk_coords');
     const savedZip = localStorage.getItem('fk_zip');
 
-    if (savedText) setLocationText(savedText);
+    if (savedText) {
+      setLocationText(savedText);
+    } else {
+      // Auto open location selector if no saved location on initial load (like Swiggy)
+      setLocationModalOpen(true);
+    }
     if (savedCoords) setCoords(JSON.parse(savedCoords));
     if (savedZip) setZipCode(savedZip);
     
@@ -69,6 +74,10 @@ export const LocationProvider = ({ children }) => {
 
     if (!("geolocation" in navigator)) {
       setPermissionStatus('denied');
+      if (!locationText) {
+        setCoords({ latitude: 13.0071, longitude: 80.2200 });
+        setLocationText('Chennai, Tamil Nadu');
+      }
       setLoading(false);
       return false;
     }
@@ -111,6 +120,10 @@ export const LocationProvider = ({ children }) => {
             resolve(true);
           } catch (err) {
             console.error('Geocoding error:', err);
+            if (!locationText) {
+              setCoords({ latitude: 13.0071, longitude: 80.2200 });
+              setLocationText('Chennai, Tamil Nadu');
+            }
             setLoading(false);
             resolve(false);
           }
@@ -118,6 +131,10 @@ export const LocationProvider = ({ children }) => {
         (error) => {
           console.warn('Geolocation error:', error.message);
           setPermissionStatus('denied');
+          if (!locationText) {
+            setCoords({ latitude: 13.0071, longitude: 80.2200 });
+            setLocationText('Chennai, Tamil Nadu');
+          }
           setLoading(false);
           resolve(false);
         },

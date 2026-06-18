@@ -8,7 +8,7 @@ const OrdersContext = createContext();
 
 export const useOrders = () => useContext(OrdersContext);
 
-const ORDERS_PREFIX = 'freshkart_orders_';
+const ORDERS_PREFIX = 'nearmart_orders_';
 
 // ─── Real-world order lifecycle time thresholds (in minutes) ───
 // These define how long each stage lasts after the order is placed.

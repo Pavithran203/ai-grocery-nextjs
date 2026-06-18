@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { createContext, useContext, useState, useEffect } from 'react';
 import i18n from '@/i18n/config';
 
@@ -34,7 +34,7 @@ export const LanguageProvider = ({ children }) => {
   const [language, setLanguage] = useState('EN');
 
   useEffect(() => {
-    const savedLanguage = sessionStorage.getItem('freshkart_language') || localStorage.getItem('i18nextLng') || 'en';
+    const savedLanguage = sessionStorage.getItem('nearmart_language') || localStorage.getItem('i18nextLng') || 'en';
     const normalized = normalizeLanguage(savedLanguage);
     setLanguage(normalized);
     void i18n.changeLanguage(LABEL_TO_CODE[normalized] || 'en');
@@ -44,7 +44,7 @@ export const LanguageProvider = ({ children }) => {
     const syncLanguage = (lng) => {
       const normalized = normalizeLanguage(lng);
       setLanguage(normalized);
-      sessionStorage.setItem('freshkart_language', normalized);
+      sessionStorage.setItem('nearmart_language', normalized);
       localStorage.setItem('i18nextLng', LABEL_TO_CODE[normalized] || 'en');
       document.documentElement.lang = LABEL_TO_CODE[normalized] || 'en';
     };
@@ -59,13 +59,13 @@ export const LanguageProvider = ({ children }) => {
 
   useEffect(() => {
     const titles = {
-      EN: 'FreshKart - AI Grocery Delivery',
-      தமிழ்: 'பிரெஷ்கார்ட் - AI மளிகை டெலிவரி',
-      తెలుగు: 'ఫ్రెష్‌కార్ట్ - AI గ్రోసరీ డెలివరీ',
-      ಕನ್ನಡ: 'ಫ್ರೆഷ్‌ಕಾರ್ಟ್ - AI ದಿನಸಿ ವಿತರಣೆ',
-      മലയാളം: 'ഫ്രഷ്കാർട്ട് - AI ഗ്രോസറി ഡெലிவറി',
-      हिंदी: 'फ्रेशकार्ट - AI किराना डिलीवरी',
-      हिन्दी: 'फ्रेशकार्ट - AI किराना डिलीवरी',
+      EN: 'NearMart - AI Grocery Delivery',
+      தமிழ்: 'நியர்மார்ட் - AI மளிகை டெலிவரி',
+      తెలుగు: 'నియర్‌మార్ట్ - AI గ్రోసరీ డెలివరీ',
+      ಕನ್ನಡ: 'ನಿಯರ್‌ಮಾರ್ಟ್ - AI ದಿನಸಿ ವಿತರಣೆ',
+      മലയാളം: 'നിയർമാർട്ട് - AI ഗ്രോസറി ഡെലിവറി',
+      हिंदी: 'नियरमार्ट - AI किराना डिलीवरी',
+      हिन्दी: 'नियरमार्ट - AI किराना डिलीवरी',
     };
     document.title = titles[language] || titles.EN;
   }, [language]);
@@ -73,7 +73,7 @@ export const LanguageProvider = ({ children }) => {
   const changeLanguage = (newLang) => {
     const normalized = normalizeLanguage(newLang);
     setLanguage(normalized);
-    sessionStorage.setItem('freshkart_language', normalized);
+    sessionStorage.setItem('nearmart_language', normalized);
     localStorage.setItem('i18nextLng', LABEL_TO_CODE[normalized] || 'en');
     document.documentElement.lang = LABEL_TO_CODE[normalized] || 'en';
     void i18n.changeLanguage(LABEL_TO_CODE[normalized] || 'en');

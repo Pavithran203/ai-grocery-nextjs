@@ -87,7 +87,7 @@ export default function PaymentsPage() {
               Secure Storage <CheckCircle2 className="w-4 h-4 text-emerald-500" />
             </h3>
             <p className="text-sm font-medium text-blue-700/70 dark:text-blue-400/70 leading-relaxed max-w-2xl">
-              FreshKart uses industry-standard 256-bit encryption to secure your payment information. We never store your CVV numbers or full card details. Payments are processed through PCI-DSS compliant partners.
+              NearMart uses industry-standard 256-bit encryption to secure your payment information. We never store your CVV numbers or full card details. Payments are processed through PCI-DSS compliant partners.
             </p>
           </div>
         </div>

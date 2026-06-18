@@ -9,8 +9,22 @@ import ProductsContent from '../../../components/ProductsContent';
 import Link from 'next/link';
 import { ArrowLeft, MapPin, Star, Clock, Truck } from 'lucide-react';
 import { useLocation } from '../../../context/LocationContext';
+import { useLanguage } from '../../../context/LanguageContext';
 
 export default function StoreDetailPage() {
+  const { language } = useLanguage();
+  
+  const getLocalizedStoreName = (storeObj) => {
+    if (!storeObj) return '';
+    const langMap = {
+      'தமிழ்': storeObj.name_ta,
+      'മലയാളം': storeObj.name_ml,
+      'తెలుగు': storeObj.name_te,
+      'हिंदी': storeObj.name_hi,
+      'ಕನ್ನಡ': storeObj.name_kn,
+    };
+    return langMap[language] || storeObj.name;
+  };
   const params = useParams();
   const storeId = params.id;
   const { t } = useTranslation();
@@ -45,7 +59,7 @@ export default function StoreDetailPage() {
         <div className="max-w-7xl mx-auto px-4 pt-6">
           <Link href="/stores" className="flex items-center gap-2 text-sm font-bold text-gray-500 mb-6 hover:text-emerald-500 transition-colors">
             <ArrowLeft size={16} />
-            Back to Stores
+            {t('stores.backToStores', 'Back to Stores')}
           </Link>
           
           <div className="flex flex-col md:flex-row gap-8 items-start">
@@ -55,7 +69,7 @@ export default function StoreDetailPage() {
             
             <div className="flex-1">
               <div className="flex flex-wrap items-center gap-3 mb-2">
-                <h1 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white">{store.name}</h1>
+                <h1 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white">{getLocalizedStoreName(store)}</h1>
                 <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black" style={{ backgroundColor: store.status.bgColor, color: store.status.color }}>
                   <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: store.status.color }} />
                   {t[store.status.label] || store.status.label}
@@ -85,7 +99,9 @@ export default function StoreDetailPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <h2 className="text-2xl font-black mb-6">Products from {store.name}</h2>
+        <h2 className="text-2xl font-black mb-6">
+          {t('stores.productsFrom', { defaultValue: 'Products from {{store}}', store: getLocalizedStoreName(store) })}
+        </h2>
         <ProductsContent products={products} store={store} />
       </div>
     </div>

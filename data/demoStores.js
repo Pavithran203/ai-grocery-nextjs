@@ -1,6 +1,7 @@
 export const DEMO_STORES = [
+  // name_ta = Tamil | name_ml = Malayalam | name_te = Telugu | name_hi = Hindi | name_kn = Kannada
   {
-    id: 'store-001', name: 'Kumar Grocery Store', emoji: '🏪',
+    id: 'store-001', name: 'Kumar Grocery Store', name_ta: 'குமார் மளிகை கடை', name_ml: 'കുമാർ ഗ്രോസറി സ്റ്റോർ', name_te: 'కుమార్ కిరాణా స్టోర్', name_hi: 'कुमार ग्रोसरी स्टोर', name_kn: 'ಕುಮಾರ್ ದಿನಸಿ ಅಂಗಡಿ', emoji: '🏪',
     address: '12, Gandhi Nagar, 2nd Street, T. Nagar',
     zipCode: '600017', area: 'T. Nagar', city: 'Chennai',
     latitude: 13.0418, longitude: 80.2341,
@@ -15,7 +16,7 @@ export const DEMO_STORES = [
     categories: ['Staples', 'Dal & Pulses', 'Oil & Ghee', 'Masalas & Spices', 'Sugar & Salt'],
   },
   {
-    id: 'store-002', name: 'Lakshmi Traders', emoji: '🛒',
+    id: 'store-002', name: 'Lakshmi Traders', name_ta: 'லக்ஷ்மி வியாபாரிகள்', name_ml: 'ലക്ഷ്മി ട്രേഡേഴ്സ്', name_te: 'లక్ష్మీ వ్యాపారులు', name_hi: 'लक्ष्मी ट्रेडर्स', name_kn: 'ಲಕ್ಷ್ಮಿ ಟ್ರೇಡರ್ಸ್', emoji: '🛒',
     address: '45, Anna Salai, Main Road, Mylapore',
     zipCode: '600004', area: 'Mylapore', city: 'Chennai',
     latitude: 13.0339, longitude: 80.2676,
@@ -30,7 +31,7 @@ export const DEMO_STORES = [
     categories: ['Masalas & Spices', 'Oil & Ghee', 'Flour', 'Sugar & Salt', 'Snacks & Biscuits'],
   },
   {
-    id: 'store-003', name: 'Sri Vinayaka Provisions', emoji: '🪔',
+    id: 'store-003', name: 'Sri Vinayaka Provisions', name_ta: 'ஸ்ரீ விநாயக பிரொவிஷன்ஸ்', name_ml: 'ശ്രീ വിനായക പ്രൊവിഷൻസ്', name_te: 'శ్రీ వినాయక ప్రొవిజన్స్', name_hi: 'श्री विनायक प्रोविजन्स', name_kn: 'ಶ್ರೀ ವಿನಾಯಕ ಪ್ರೊವಿಷನ್ಸ್', emoji: '🪔',
     address: '78, Temple Street, Mylapore',
     zipCode: '600004', area: 'Mylapore', city: 'Chennai',
     latitude: 13.0326, longitude: 80.2707,
@@ -45,7 +46,7 @@ export const DEMO_STORES = [
     categories: ['Dal & Pulses', 'Staples', 'Masalas & Spices', 'Flour'],
   },
   {
-    id: 'store-004', name: 'Fresh Mart Supermarket', emoji: '🏬',
+    id: 'store-004', name: 'Fresh Mart Supermarket', name_ta: 'புரெஷ் மார்ட் சூப்பர்மார்க்கெட்', name_ml: 'ഫ്രഷ് മാർട്ട് സൂപ്പർമാർക്കറ്റ്', name_te: 'ఫ్రెష్ మార్ట్ సూపర్‌మార్కెట్', name_hi: 'फ्रेश मार्ट सुपरमार्केट', name_kn: 'ಫ್ರೆಶ್ ಮಾರ್ಟ್ ಸೂಪರ್‌ಮಾರ್ಕೆಟ್', emoji: '🏬',
     address: '23, Park Avenue, T. Nagar',
     zipCode: '600017', area: 'T. Nagar', city: 'Chennai',
     latitude: 13.0401, longitude: 80.2290,
@@ -59,7 +60,7 @@ export const DEMO_STORES = [
     categories: ['Household Essentials', 'Cleaning Supplies', 'Personal Care', 'Snacks & Biscuits'],
   },
   {
-    id: 'store-005', name: 'Annapurna Stores', emoji: '🍚',
+    id: 'store-005', name: 'Annapurna Stores', name_ta: 'அன்னபூர்ணா கடைகள்', name_ml: 'അന്നപൂർണ സ്റ്റോർ', name_te: 'అన్నపూర్ణ స్టోర్స్', name_hi: 'अन्नपूर्णा स्टोर्स', name_kn: 'ಅನ್ನಪೂರ್ಣ ಸ್ಟೋರ್ಸ್', emoji: '🍚',
     address: '9, Nehru Street, West Mambalam',
     zipCode: '600033', area: 'West Mambalam', city: 'Chennai',
     latitude: 13.0382, longitude: 80.2219,
@@ -74,7 +75,7 @@ export const DEMO_STORES = [
     categories: ['Staples', 'Oil & Ghee', 'Dal & Pulses', 'Sugar & Salt', 'Flour'],
   },
   {
-    id: 'store-006', name: 'Baba Provision Store', emoji: '🧂',
+    id: 'store-006', name: 'Baba Provision Store', name_ta: 'பாபா பிரொவிஷன் கடை', name_ml: 'ബാബ പ്രൊവിഷൻ സ്റ്റോർ', name_te: 'బాబా ప్రొవిజన్ స్టోర్', name_hi: 'बाबा प्रोविजन स्टोर', name_kn: 'ಬಾಬಾ ಪ್ರೊವಿಷನ್ ಸ್ಟೋರ್', emoji: '🧂',
     address: '56, Market Road, Vadapalani',
     zipCode: '600026', area: 'Vadapalani', city: 'Chennai',
     latitude: 13.0500, longitude: 80.2122,
@@ -88,7 +89,7 @@ export const DEMO_STORES = [
     categories: ['Flour', 'Sugar & Salt', 'Oil & Ghee', 'Masalas & Spices'],
   },
   {
-    id: 'store-007', name: 'Murugan Departmental', emoji: '🛍️',
+    id: 'store-007', name: 'Murugan Departmental', name_ta: 'முருகன் டிபார்ட்மென்டல்', name_ml: 'മുരുഗൻ ഡിപ്പാർട്ട്മെന്റൽ', name_te: 'మురుగన్ డిపార్ట్‌మెంటల్', name_hi: 'मुरुगन डिपार्टमेंटल', name_kn: 'ಮುರುಗನ್ ಡಿಪಾರ್ಟ್‌ಮೆಂಟಲ್', emoji: '🛍️',
     address: '101, Arcot Road, Saligramam',
     zipCode: '600093', area: 'Saligramam', city: 'Chennai',
     latitude: 13.0560, longitude: 80.2050,
@@ -101,7 +102,7 @@ export const DEMO_STORES = [
     categories: ['Snacks & Biscuits', 'Household Essentials', 'Personal Care', 'Cleaning Supplies'],
   },
   {
-    id: 'store-008', name: 'Saravana Stores', emoji: '🏬',
+    id: 'store-008', name: 'Saravana Stores', name_ta: 'சரவண கடைகள்', name_ml: 'സരവണ സ്റ്റോർ', name_te: 'సరవణ స్టోర్స్', name_hi: 'सरवण स्टोर्स', name_kn: 'ಸರವಣ ಸ್ಟೋರ್ಸ್', emoji: '🏬',
     address: '200, Ranganathan Street, T. Nagar',
     zipCode: '600017', area: 'T. Nagar', city: 'Chennai',
     latitude: 13.0408, longitude: 80.2335,
@@ -115,7 +116,7 @@ export const DEMO_STORES = [
     categories: ['Staples', 'Dal & Pulses', 'Oil & Ghee', 'Flour', 'Masalas & Spices', 'Sugar & Salt', 'Household Essentials', 'Cleaning Supplies', 'Personal Care', 'Snacks & Biscuits'],
   },
   {
-    id: 'store-009', name: 'Sri Ganesh Stores', emoji: '🙏',
+    id: 'store-009', name: 'Sri Ganesh Stores', name_ta: 'ஸ்ரீ கணேஷ் கடைகள்', name_ml: 'ശ്രീ ഗണേഷ് സ്റ്റോർ', name_te: 'శ్రీ గణేష్ స్టోర్స్', name_hi: 'श्री गणेश स्टोर्स', name_kn: 'ಶ್ರೀ ಗಣೇಶ್ ಸ್ಟೋರ್ಸ್', emoji: '🙏',
     address: '34, Luz Church Road, Mylapore',
     zipCode: '600004', area: 'Mylapore', city: 'Chennai',
     latitude: 13.0350, longitude: 80.2690,
@@ -129,7 +130,7 @@ export const DEMO_STORES = [
     categories: ['Staples', 'Dal & Pulses', 'Masalas & Spices', 'Oil & Ghee'],
   },
   {
-    id: 'store-010', name: 'Ambika Stores', emoji: '🌾',
+    id: 'store-010', name: 'Ambika Stores', name_ta: 'அம்பிகா கடைகள்', name_ml: 'അംബിക സ്റ്റോർ', name_te: 'అంబిక స్టోర్స్', name_hi: 'अंबिका स्टोर्स', name_kn: 'ಅಂಬಿಕಾ ಸ್ಟೋರ್ಸ್', emoji: '🌾',
     address: '67, South Usman Road, T. Nagar',
     zipCode: '600017', area: 'T. Nagar', city: 'Chennai',
     latitude: 13.0395, longitude: 80.2320,
@@ -143,7 +144,7 @@ export const DEMO_STORES = [
     categories: ['Staples', 'Flour', 'Sugar & Salt', 'Oil & Ghee', 'Masalas & Spices'],
   },
   {
-    id: 'store-011', name: 'Radhika Provision', emoji: '🏪',
+    id: 'store-011', name: 'Radhika Provision', name_ta: 'ராதிகா பிரொவிஷன்', name_ml: 'രാധിക പ്രൊവിഷൻ', name_te: 'రాధిక ప్రొవిజన్', name_hi: 'राधिका प्रोविजन', name_kn: 'ರಾಧಿಕ ಪ್ರೊವಿಷನ್', emoji: '🏪',
     address: '22, Valluvar Kottam Road, Nungambakkam',
     zipCode: '600034', area: 'Nungambakkam', city: 'Chennai',
     latitude: 13.0580, longitude: 80.2370,
@@ -157,7 +158,7 @@ export const DEMO_STORES = [
     categories: ['Dal & Pulses', 'Oil & Ghee', 'Masalas & Spices', 'Snacks & Biscuits'],
   },
   {
-    id: 'store-012', name: 'Jaya Grocery', emoji: '🛒',
+    id: 'store-012', name: 'Jaya Grocery', name_ta: 'ஜெயா மளிகை', name_ml: 'ജയ ഗ്രോസറി', name_te: 'జయ కిరాణా', name_hi: 'जया ग्रोसरी', name_kn: 'ಜಯ ಗ್ರೋಸರಿ', emoji: '🛒',
     address: '89, Cathedral Road, Gopalapuram',
     zipCode: '600086', area: 'Gopalapuram', city: 'Chennai',
     latitude: 13.0510, longitude: 80.2530,
@@ -171,7 +172,7 @@ export const DEMO_STORES = [
     categories: ['Staples', 'Dal & Pulses', 'Oil & Ghee', 'Flour', 'Sugar & Salt', 'Masalas & Spices'],
   },
   {
-    id: 'store-013', name: 'Balaji Super Market', emoji: '🏬',
+    id: 'store-013', name: 'Balaji Super Market', name_ta: 'பாலாஜி சூப்பர் மார்க்கெட்', name_ml: 'ബാലാജി സൂപ്പർ മാർക്കറ്റ്', name_te: 'బాలాజీ సూపర్ మార్కెట్', name_hi: 'बालाजी सुपर मार्केट', name_kn: 'ಬಾಲಾಜಿ ಸೂಪರ್ ಮಾರ್ಕೆಟ್', emoji: '🏬',
     address: '15, Ashok Nagar, 6th Avenue',
     zipCode: '600083', area: 'Ashok Nagar', city: 'Chennai',
     latitude: 13.0370, longitude: 80.2130,
@@ -185,7 +186,7 @@ export const DEMO_STORES = [
     categories: ['Household Essentials', 'Cleaning Supplies', 'Personal Care', 'Snacks & Biscuits', 'Staples'],
   },
   {
-    id: 'store-014', name: 'Meena Bazaar', emoji: '🪔',
+    id: 'store-014', name: 'Meena Bazaar', name_ta: 'மீனா பஜார்', name_ml: 'മീന ബസാർ', name_te: 'మీనా బజార్', name_hi: 'मीना बाजार', name_kn: 'ಮೀನಾ ಬಜಾರ್', emoji: '🪔',
     address: '43, Bazaar Road, Thiruvanmiyur',
     zipCode: '600041', area: 'Thiruvanmiyur', city: 'Chennai',
     latitude: 12.9830, longitude: 80.2640,
@@ -198,7 +199,7 @@ export const DEMO_STORES = [
     categories: ['Masalas & Spices', 'Dal & Pulses', 'Staples', 'Sugar & Salt'],
   },
   {
-    id: 'store-015', name: 'Raman Stores', emoji: '🍚',
+    id: 'store-015', name: 'Raman Stores', name_ta: 'ராமன் கடைகள்', name_ml: 'രാമൻ സ്റ്റോർ', name_te: 'రామన్ స్టోర్స్', name_hi: 'रामन स्टोर्स', name_kn: 'ರಾಮನ್ ಸ್ಟೋರ್ಸ್', emoji: '🍚',
     address: '90, OMR Road, Sholinganallur',
     zipCode: '600119', area: 'Sholinganallur', city: 'Chennai',
     latitude: 12.9010, longitude: 80.2270,
@@ -212,7 +213,7 @@ export const DEMO_STORES = [
     categories: ['Staples', 'Dal & Pulses', 'Oil & Ghee', 'Flour'],
   },
   {
-    id: 'store-016', name: 'KR Provision Store', emoji: '🧂',
+    id: 'store-016', name: 'KR Provision Store', name_ta: 'KR பிரொவிஷன் கடை', name_ml: 'KR പ്രൊവിഷൻ സ്റ്റോർ', name_te: 'KR ప్రొవిజన్ స్టోర్', name_hi: 'KR प्रोविजन स्टोर', name_kn: 'KR ಪ್ರೊವಿಷನ್ ಸ್ಟೋರ್', emoji: '🧂',
     address: '55, Anna Nagar East, 2nd Avenue',
     zipCode: '600102', area: 'Anna Nagar', city: 'Chennai',
     latitude: 13.0850, longitude: 80.2190,
@@ -226,7 +227,7 @@ export const DEMO_STORES = [
     categories: ['Oil & Ghee', 'Flour', 'Sugar & Salt', 'Masalas & Spices', 'Dal & Pulses'],
   },
   {
-    id: 'store-017', name: 'New Sakthi Stores', emoji: '🛍️',
+    id: 'store-017', name: 'New Sakthi Stores', name_ta: 'நியூ சக்தி கடைகள்', name_ml: 'ന്യൂ ശക്തി സ്റ്റോർ', name_te: 'న్యూ సక్తి స్టోర్స్', name_hi: 'न्यू शक्ति स्टोर्स', name_kn: 'ನ್ಯೂ ಶಕ್ತಿ ಸ್ಟೋರ್ಸ್', emoji: '🛍️',
     address: '12, Mogappair East Main Road',
     zipCode: '600037', area: 'Mogappair', city: 'Chennai',
     latitude: 13.0910, longitude: 80.1830,
@@ -240,7 +241,7 @@ export const DEMO_STORES = [
     categories: ['Snacks & Biscuits', 'Household Essentials', 'Personal Care', 'Cleaning Supplies', 'Staples'],
   },
   {
-    id: 'store-018', name: 'Mahalakshmi Traders', emoji: '🙏',
+    id: 'store-018', name: 'Mahalakshmi Traders', name_ta: 'மகாலக்ஷ்மி வியாபாரிகள்', name_ml: 'മഹാലക്ഷ്മി ട്രേഡേഴ്സ്', name_te: 'మహాలక్ష్మి వ్యాపారులు', name_hi: 'महालक्ष्मी ट्रेडर्स', name_kn: 'ಮಹಾಲಕ್ಷ್ಮಿ ಟ್ರೇಡರ್ಸ್', emoji: '🙏',
     address: '33, Adyar Main Road, Adyar',
     zipCode: '600020', area: 'Adyar', city: 'Chennai',
     latitude: 13.0060, longitude: 80.2560,
@@ -254,7 +255,7 @@ export const DEMO_STORES = [
     categories: ['Staples', 'Dal & Pulses', 'Oil & Ghee', 'Masalas & Spices', 'Sugar & Salt', 'Flour'],
   },
   {
-    id: 'store-019', name: 'Sree Krishna Stores', emoji: '🌾',
+    id: 'store-019', name: 'Sree Krishna Stores', name_ta: 'ஸ்ரீ கிருஷ்ணா கடைகள்', name_ml: 'ശ്രീ കൃഷ്ണ സ്റ്റോർ', name_te: 'శ్రీ కృష్ణ స్టోర్స్', name_hi: 'श्री कृष्णा स्टोर्स', name_kn: 'ಶ್ರೀ ಕೃಷ್ಣ ಸ್ಟೋರ್ಸ್', emoji: '🌾',
     address: '71, Velachery Main Road, Velachery',
     zipCode: '600042', area: 'Velachery', city: 'Chennai',
     latitude: 12.9790, longitude: 80.2210,
@@ -268,7 +269,7 @@ export const DEMO_STORES = [
     categories: ['Staples', 'Masalas & Spices', 'Oil & Ghee', 'Dal & Pulses'],
   },
   {
-    id: 'store-020', name: 'Amma Kadai', emoji: '🏪',
+    id: 'store-020', name: 'Amma Kadai', name_ta: 'அம்மா கடை', name_ml: 'അമ്മ കട', name_te: 'అమ్మ కొట్టు', name_hi: 'अम्मा कदई', name_kn: 'ಅಮ್ಮ ಕಡೆ', emoji: '🏪',
     address: '5, Porur Junction, Porur',
     zipCode: '600116', area: 'Porur', city: 'Chennai',
     latitude: 13.0360, longitude: 80.1570,
@@ -282,7 +283,7 @@ export const DEMO_STORES = [
     categories: ['Staples', 'Dal & Pulses', 'Oil & Ghee', 'Flour', 'Sugar & Salt', 'Masalas & Spices'],
   },
   {
-    id: 'store-021', name: 'Patel Provision', emoji: '🛒',
+    id: 'store-021', name: 'Patel Provision', name_ta: 'படேல் பிரொவிஷன்', name_ml: 'പട്ടേൽ പ്രൊവിഷൻ', name_te: 'పటేల్ ప్రొవిజన్', name_hi: 'पटेल प्रोविजन', name_kn: 'ಪಟೇಲ್ ಪ್ರೊವಿಷನ್', emoji: '🛒',
     address: '88, Perambur High Road, Perambur',
     zipCode: '600011', area: 'Perambur', city: 'Chennai',
     latitude: 13.1110, longitude: 80.2450,
@@ -296,7 +297,7 @@ export const DEMO_STORES = [
     categories: ['Flour', 'Oil & Ghee', 'Sugar & Salt', 'Household Essentials'],
   },
   {
-    id: 'store-022', name: 'Senthil Stores', emoji: '🪔',
+    id: 'store-022', name: 'Senthil Stores', name_ta: 'செந்தில் கடைகள்', name_ml: 'സെന്തിൽ സ്റ്റോർ', name_te: 'సెంతిల్ స్టోర్స్', name_hi: 'सेंथिल स्टोर्स', name_kn: 'ಸೆಂಥಿಲ್ ಸ್ಟೋರ್ಸ್', emoji: '🪔',
     address: '19, Tambaram Main Road, Tambaram',
     zipCode: '600045', area: 'Tambaram', city: 'Chennai',
     latitude: 12.9250, longitude: 80.1270,
@@ -310,7 +311,7 @@ export const DEMO_STORES = [
     categories: ['Staples', 'Dal & Pulses', 'Oil & Ghee', 'Masalas & Spices', 'Sugar & Salt'],
   },
   {
-    id: 'store-023', name: 'VR Supermarket', emoji: '🏬',
+    id: 'store-023', name: 'VR Supermarket', name_ta: 'VR சூப்பர்மார்க்கெட்', name_ml: 'VR സൂപ്പർമാർക്കറ്റ്', name_te: 'VR సూపర్‌మార్కెట్', name_hi: 'VR सुपरमार्केट', name_kn: 'VR ಸೂಪರ್‌ಮಾರ್ಕೆಟ್', emoji: '🏬',
     address: '120, Chromepet Main Road',
     zipCode: '600044', area: 'Chromepet', city: 'Chennai',
     latitude: 12.9510, longitude: 80.1410,
@@ -324,7 +325,7 @@ export const DEMO_STORES = [
     categories: ['Household Essentials', 'Cleaning Supplies', 'Personal Care', 'Snacks & Biscuits', 'Staples', 'Dal & Pulses'],
   },
   {
-    id: 'store-024', name: 'Subramani Grocery', emoji: '🍚',
+    id: 'store-024', name: 'Subramani Grocery', name_ta: 'சுப்ரமணி மளிகை', name_ml: 'സുബ്രഹ്മണ്യ ഗ്രോസറി', name_te: 'సుబ్రమణి కిరాణా', name_hi: 'सुब्रमणि ग्रोसरी', name_kn: 'ಸುಬ್ರಮಣಿ ಗ್ರೋಸರಿ', emoji: '🍚',
     address: '7, Royapettah High Road',
     zipCode: '600014', area: 'Royapettah', city: 'Chennai',
     latitude: 13.0520, longitude: 80.2620,
@@ -338,7 +339,7 @@ export const DEMO_STORES = [
     categories: ['Staples', 'Dal & Pulses', 'Masalas & Spices', 'Oil & Ghee', 'Flour'],
   },
   {
-    id: 'store-025', name: 'Madras Grocery Hub', emoji: '🛍️',
+    id: 'store-025', name: 'Madras Grocery Hub', name_ta: 'மதராஸ் மளிகை ஹப்', name_ml: 'മദ്രാസ് ഗ്രോസറി ഹബ്', name_te: 'మద్రాస్ కిరాణా హబ్', name_hi: 'मद्रास ग्रोसरी हब', name_kn: 'ಮದ್ರಾಸ್ ಗ್ರೋಸರಿ ಹಬ್', emoji: '🛍️',
     address: '44, Mount Road, Guindy',
     zipCode: '600032', area: 'Guindy', city: 'Chennai',
     latitude: 13.0067, longitude: 80.2206,
@@ -347,7 +348,190 @@ export const DEMO_STORES = [
     deliveryAvailable: true, pickupAvailable: true, minOrder: 250,
     deliveryRadiusKm: 25, freeDeliveryRadiusKm: 5, baseDeliveryCharge: 45,
     estimatedDeliveryTime: '45–60 mins',
-    image: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400',
     categories: ['Staples', 'Dal & Pulses', 'Oil & Ghee', 'Flour', 'Masalas & Spices', 'Sugar & Salt', 'Household Essentials', 'Cleaning Supplies', 'Personal Care', 'Snacks & Biscuits'],
   },
 ];
+
+export const getLocalizedStoreAddress = (store, language) => {
+  if (!store) return '';
+  const addressTranslations = {
+    'store-001': {
+      'தமிழ்': '12, காந்தி நகர், 2வது தெரு, தி. நகர்',
+      'മലയാളം': '12, ഗാന്ധി നഗർ, 2-ാം തെരുവ്, ടി. നഗർ',
+      'తెలుగు': '12, గాంధీ నగర్, 2వ వీధి, టి. నగర్',
+      'हिंदी': '12, गांधी नगर, दूसरी गली, टी. नगर',
+      'ಕನ್ನಡ': '12, ಗಾಂಧಿ ನಗರ, 2ನೇ ಬೀದಿ, ಟಿ. ನಗರ'
+    },
+    'store-002': {
+      'தமிழ்': '45, அண்ணா சாலை, மெயின் ரோடு, மயிலாப்பூர்',
+      'മലയാളം': '45, അണ്ണാ ശാലൈ, മെയിൻ റോഡ്, മൈലാപ്പൂർ',
+      'తెలుగు': '45, అన్నా సాలై, மெயின் రోడ్, మైలాపూర్',
+      'हिंदी': '45, अन्ना सलाई, मेन रोड, मायलापुर',
+      'ಕನ್ನಡ': '45, ಅಣ್ಣಾ ಸಾಲೈ, ಮುಖ್ಯ ರಸ್ತೆ, ಮೈಲಾಪುರ್'
+    },
+    'store-003': {
+      'தமிழ்': '78, கோவில் தெரு, மயிலாப்பூர்',
+      'മലയാളം': '78, ടെമ്പിൾ തെരുവ്, മൈലാപ്പൂർ',
+      'తెలుగు': '78, టెంపుల్ వీధి, మైలాపూర్',
+      'हिंदी': '78, टेम्पल स्ट्रीट, मायलापुर',
+      'ಕನ್ನಡ': '78, ದೇವಸ್ಥಾನದ ಬೀದಿ, ಮೈಲಾಪುರ್'
+    },
+    'store-004': {
+      'தமிழ்': '23, பார்க் அவென்யூ, தி. நகர்',
+      'മലയാളം': '23, പാർക്ക് അവന്യൂ, ടി. നഗർ',
+      'తెలుగు': '23, పార్క్ అవెన్యూ, టి. నగర్',
+      'हिंदी': '23, पार्क एवेन्यू, टी. नगर',
+      'ಕನ್ನಡ': '23, ಪาร์ಕ್ ಅವೆನ್ಯೂ, ಟಿ. ನಗರ'
+    },
+    'store-005': {
+      'தமிழ்': '9, நேரு தெரு, மேற்கு மாம்பலம்',
+      'മലയാളം': '9, നെഹ്‌റു തെരുവ്, വെസ്റ്റ് മാമ്പലം',
+      'తెలుగు': '9, నెహ్రూ వీధి, వెస్ట్ మాంబలం',
+      'हिंदी': '9, नेहरू स्ट्रीट, वेस्ट माम्बलम',
+      'ಕನ್ನಡ': '9, ನೆಹರು ಬೀದಿ, ವೆಸ್ಟ್ ಮಾಂಬಲಂ'
+    },
+    'store-006': {
+      'தமிழ்': '56, மார்க்கெட் ரோடு, வடபழனி',
+      'മലയാളം': '56, മാർക്കറ്റ് റോഡ്, വടപഴനി',
+      'తెలుగు': '56, మార్కెట్ రోడ్, వడపలాని',
+      'हिंदी': '56, मार्केट रोड, वडपलानी',
+      'ಕನ್ನಡ': '56, ಮಾರ್ಕೆಟ್ ರಸ್ತೆ, ವಡಪಳನಿ'
+    },
+    'store-007': {
+      'தமிழ்': '101, ஆற்காடு சாலை, சாலிகிராமம்',
+      'മലയാളം': '101, ആർക്കോട്ട് റോഡ്, സാലിഗ്രാമം',
+      'తెలుగు': '101, ఆర్కాట్ రోడ్, సాలిగ్రామం',
+      'हिंदी': '101, आर्कोट रोड, शालिग्रामम',
+      'ಕನ್ನಡ': '101, ಆರ್ಕಾಟ್ ರಸ್ತೆ, ಸಾಲಿಗ್ರಾಮ'
+    },
+    'store-008': {
+      'தமிழ்': '200, ரங்கநாதன் தெரு, தி. நகர்',
+      'മലയാളം': '200, രംഗനാഥൻ തെരുവ്, ടി. നഗർ',
+      'తెలుగు': '200, రంగనాథన్ వీధి, టి. నగర్',
+      'हिंदी': '200, रंगनाथन स्ट्रीट, टी. नगर',
+      'ಕನ್ನಡ': '200, ರಂಗनाथन ಬೀದಿ, ಟಿ. ನಗರ'
+    },
+    'store-009': {
+      'தமிழ்': '34, லஸ் சர்ச் சாலை, மயிலாப்பூர்',
+      'മലയാളം': '34, ലസ് ചർച്ച് റോഡ്, മൈലാപ്പൂർ',
+      'తెలుగు': '34, లుజ్ చర్చ్ రోడ్, మైలాపూర్',
+      'हिंदी': '34, लूज चर्च रोड, मायलापुर',
+      'ಕನ್ನಡ': '34, ಲುಜ್ ಚರ್ಚ್ ರಸ್ತೆ, ಮೈಲಾಪುರ್'
+    },
+    'store-010': {
+      'தமிழ்': '67, தெற்கு உஸ்மான் சாலை, தி. நகர்',
+      'മലയാളം': '67, സൗത്ത് ഉസ്മാൻ റോഡ്, ടി. നഗർ',
+      'తెలుగు': '67, సౌత్ ఉస్మాన్ రోడ్, టి. నగర్',
+      'हिंदी': '67, साउथ उस्मान रोड, टी. नगर',
+      'ಕನ್ನಡ': '67, ಸೌತ್ ಉಸ್ಮಾನ್ ರಸ್ತೆ, ಟಿ. ನಗರ'
+    },
+    'store-011': {
+      'தமிழ்': '22, வள்ளுவர் கோட்டம் சாலை, நுங்கம்பாக்கம்',
+      'മലയാളം': '22, വള്ളുവർ കോട്ടം റോഡ്, നുങ്കമ്പാക്കം',
+      'తెలుగు': '22, వల్లువార్ కొట్టం రోడ్, నుంగంబాక్కం',
+      'हिंदी': '22, वल्लुवर कोट्टम रोड, नुंगमबाक्कम',
+      'ಕನ್ನಡ': '22, ವಲ್ಲುವರ್ ಕೊಟ್ಟಂ ರಸ್ತೆ, ನುಂಗಂಬಾಕ್ಕಂ'
+    },
+    'store-012': {
+      'தமிழ்': '89, கதீட்ரல் சாலை, கோபாலபுரம்',
+      'മലയാളം': '89, കത്തീഡ്രൽ റോഡ്, ഗോപാലപുരം',
+      'తెలుగు': '89, కాథెడ్రల్ రోడ్, గోపాలపురం',
+      'हिंदी': '89, कैथेड्रल रोड, गोपालपुरम',
+      'ಕನ್ನಡ': '89, ಕ್ಯಾಥೆಡ್ರಲ್ ರಸ್ತೆ, ಗೋಪಾಲಪುರಂ'
+    },
+    'store-013': {
+      'தமிழ்': '15, அசோக் நகர், 6வது அவென்யூ',
+      'മലയാളം': '15, അശോക് നഗർ, 6-ാം അവന്യൂ',
+      'తెలుగు': '15, అశోక్ నగర్, 6వ అవెన్యూ',
+      'हिंदी': '15, अशोक नगर, छठा एवेन्यू',
+      'ಕನ್ನಡ': '15, ಅಶೋಕ್ ನಗರ, 6ನೇ ಅವೆನ್ಯೂ'
+    },
+    'store-014': {
+      'தமிழ்': '43, பஜார் சாலை, திருவான்மியூர்',
+      'മലയാളം': '43, ബസാർ റോഡ്, തിരുവാൻമിയൂർ',
+      'తెలుగు': '43, బజార్ రోడ్, తిరువాన్మియూర్',
+      'हिंदी': '43, बाज़ार रोड, थिरुवानमियूर',
+      'ಕನ್ನಡ': '43, ಬಜಾರ್ ರಸ್ತೆ, ತಿರುವನ್ಮಿಯೂರ್'
+    },
+    'store-015': {
+      'தமிழ்': '90, ஓஎம்ஆர் சாலை, சோழிங்கநல்லூர்',
+      'മലയാളം': '90, ഒഎംആർ റോഡ്, ചോളിംഗനല്ലൂർ',
+      'తెలుగు': '90, OMR రోడ్, షోలింగనల్లూర్',
+      'हिंदी': '90, ओएमआर रोड, शोलिंगनल्लूर',
+      'ಕನ್ನಡ': '90, ಒಎಂആർ ರಸ್ತೆ, ಶೋಲಿಂಗനല്ലೂರ್'
+    },
+    'store-016': {
+      'தமிழ்': '55, அண்ணா நகர் கிழக்கு, 2வது அவென்யூ',
+      'മലയാളം': '55, അണ്ണാ നഗർ ഈസ്റ്റ്, 2-ാം അവന്യൂ',
+      'తెలుగు': '55, అన్నా నగర్ ఈస్ట్, 2వ అవెన్యూ',
+      'हिंदी': '55, अन्ना नगर पूर्व, दूसरा एवेन्यू',
+      'ಕನ್ನಡ': '55, ಅಣ್ಣಾ ನಗರ ಪೂರ್ವ, 2ನೇ ಅವೆನ್ಯೂ'
+    },
+    'store-017': {
+      'தமிழ்': '12, முகப்பேர் கிழக்கு மெயின் ரோடு',
+      'മലയാളം': '12, മൊഗപ്പെയർ ഈസ്റ്റ് മെയിൻ റോഡ്',
+      'తెలుగు': '12, మొగప్పైర్ ఈస్ట్ మెయిన్ రోడ్',
+      'हिंदी': '12, मोगप्पैर ईस्ट मेन रोड',
+      'ಕನ್ನಡ': '12, ಮೊಗಪ್ಪೈರ್ ಈಸ್ಟ್ ಮುಖ್ಯ ರಸ್ತೆ'
+    },
+    'store-018': {
+      'தமிழ்': '33, அடையார் மெயின் ரோடு, அடையார்',
+      'മലയാളം': '33, അടയാർ മെയിൻ റോഡ്, അടയാർ',
+      'తెలుగు': '33, అడయార్ మెయిన్ రోడ్, అడయార్',
+      'हिंदी': '33, अड्यार मेन रोड, अड्यार',
+      'ಕನ್ನಡ': '33, ಅಡ್ಯಾರ್ ಮುಖ್ಯ ರಸ್ತೆ, ಅಡ್ಯಾರ್'
+    },
+    'store-019': {
+      'தமிழ்': '71, வேளச்சேரி மெயின் ரோடு, வேளச்சேரி',
+      'മലയാളം': '71, വേളാച്ചേരി മെയിൻ റോഡ്, വേളാച്ചേരി',
+      'తెలుగు': '71, వేలచేరి మెయిన్ రోడ్, వేలచేరి',
+      'hindi': '71, वेलाचेरी मेन रोड, वेलाचेरी',
+      'हिंदी': '71, वेलाचेरी मेन रोड, वेलाचेरी',
+      'ಕನ್ನಡ': '71, ವೇಲಚೇರಿ ಮುಖ್ಯ ರಸ್ತೆ, ವೇಲಚೇರಿ'
+    },
+    'store-020': {
+      'தமிழ்': '5, போரூர் சந்திப்பு, போரூர்',
+      'മലയാളം': '5, പോരൂർ ജംഗ്ഷൻ, പോരൂർ',
+      'తెలుగు': '5, పోరూర్ జంక్షన్, పోరూర్',
+      'हिंदी': '5, पोरुर जंक्शन, पोरुर',
+      'ಕನ್ನಡ': '5, ಪೋರೂರ್ ಜಂಕ್ಷನ್, ಪೋರೂರ್'
+    },
+    'store-021': {
+      'தமிழ்': '88, பெரம்பூர் நெடுஞ்சாலை, பெரம்பூர்',
+      'മലയാളം': '88, പെരമ്പൂർ ഹൈ റോഡ്, പെരമ്പൂർ',
+      'తెలుగు': '88, పెరంబూర్ హై రోడ్, పెరంబూర్',
+      'हिंदी': '88, पेराम्बुर हाई रोड, पेराम्बुर',
+      'ಕನ್ನಡ': '88, ಪೆರಂಬೂರ್ ಹೈ ರಸ್ತೆ, ಪೆರಂಬೂರ್'
+    },
+    'store-022': {
+      'தமிழ்': '19, தாம்பரம் மெயின் ரோடு, தாம்பரம்',
+      'മലയാളം': '19, താംബരം മെയിൻ റോഡ്, താംബരം',
+      'తెలుగు': '19, తాంబరం మెయిన్ రోడ్, తాంబరం',
+      'हिंदी': '19, ताम्बरम मेन रोड, ताम्बरम',
+      'ಕನ್ನಡ': '19, ತಾಂಬರಂ ಮುಖ್ಯ ರಸ್ತೆ, ತಾಂಬರಂ'
+    },
+    'store-023': {
+      'தமிழ்': '120, குரோம்பேட்டை மெயின் ரோடு',
+      'മലയാളം': '120, ക്രോംപെറ്റ് മെയിൻ റോഡ്',
+      'తెలుగు': '120, క్రోమ్‌పేట్ మెయిన్ రోడ్',
+      'हिंदी': '120, क्रोमपेट मेन रोड',
+      'ಕನ್ನಡ': '120, ಕ್ರೋಮ್‌ಪೇಟ್ ಮುಖ್ಯ ರಸ್ತೆ'
+    },
+    'store-024': {
+      'தமிழ்': '7, ராயப்பேட்டை நெடுஞ்சாலை',
+      'മലയാളം': '7, റോയപ്പേട്ട ഹൈ റോഡ്',
+      'తెలుగు': '7, రాయపేట హై రోడ్',
+      'हिंदी': '7, रॉयपेट्टाह हाई रोड',
+      'ಕನ್ನಡ': '7, ರಾಯಪೇಟೆ ಹೈ ರಸ್ತೆ'
+    },
+    'store-025': {
+      'தமிழ்': '44, மவுண்ட் ரோடு, கிண்டி',
+      'മലയാളം': '44, മൗണ്ട് റോഡ്, ഗിണ്ടി',
+      'తెలుగు': '44, మౌంట్ రోడ్, గిండి',
+      'हिंदी': '44, माउंट रोड, गिंडी',
+      'ಕನ್ನಡ': '44, ಮೌಂಟ್ ರಸ್ತೆ, ಗಿಂಡಿ'
+    }
+  };
+  const storeTranslations = addressTranslations[store.id || store._id];
+  return storeTranslations?.[language] || store.address;
+};

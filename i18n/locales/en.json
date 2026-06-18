@@ -375,5 +375,17 @@
     "loyaltyProgramTier": "Loyalty Program Tier {{tier}}",
     "coinsAway": "You are just {{coins}} coins away from Tier {{nextTier}} benefits!",
     "learnMore": "Learn More"
+  },
+  "stores": {
+    "visitStore": "Visit Store",
+    "allStores": "All Stores",
+    "byZip": "Stores by ZIP",
+    "zipCode": "ZIP Code",
+    "all": "All",
+    "findStores": "Find Stores",
+    "storesFound": "stores found",
+    "nearby": "nearby",
+    "backToStores": "Back to Stores",
+    "productsFrom": "Products from {{store}}"
   }
 }

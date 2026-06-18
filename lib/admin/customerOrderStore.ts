@@ -5,13 +5,13 @@
  * with the admin panel, so all orders placed by any account are visible
  * in the admin dashboard and orders manager.
  * 
- * Customer orders are stored under `freshkart_orders_{userId}` keys.
+ * Customer orders are stored under `nearmart_orders_{userId}` keys.
  * This module also maintains a shared admin key `nearmart_admin_orders`
  * that aggregates all customer orders for the admin panel.
  */
 
 const ADMIN_ORDERS_KEY = 'nearmart_admin_orders';
-const ORDERS_PREFIX = 'freshkart_orders_';
+const ORDERS_PREFIX = 'nearmart_orders_';
 
 export interface CustomerOrder {
   id: string;
@@ -74,7 +74,7 @@ export function getAdminCustomerOrders(): CustomerOrder[] {
 
 /**
  * Scan ALL localStorage keys for customer order data.
- * This finds orders placed by any user account (freshkart_orders_*).
+ * This finds orders placed by any user account (nearmart_orders_*).
  * Used for initial sync or if the shared store is empty.
  */
 export function scanAllCustomerOrders(): CustomerOrder[] {
@@ -94,7 +94,7 @@ export function scanAllCustomerOrders(): CustomerOrder[] {
       }
     });
 
-    // Then scan all freshkart_orders_* keys for any orders not yet in the admin store
+    // Then scan all nearmart_orders_* keys for any orders not yet in the admin store
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (!key || !key.startsWith(ORDERS_PREFIX)) continue;

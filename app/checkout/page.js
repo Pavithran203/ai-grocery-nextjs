@@ -12,6 +12,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useOrders } from "@/context/OrdersContext";
 import { useTranslation } from "react-i18next";
+import { useAddress } from "@/context/AddressContext";
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -76,6 +77,7 @@ function Section({ title, icon, children, step, current, onEdit, collapsible = f
 export default function CheckoutPage() {
   const { user, loading: authLoading } = useAuth();
   const { cartItems, clearCart, getCartTotal } = useCart();
+  const { addresses, getDefaultAddress } = useAddress();
   const { t, i18n } = useTranslation();
   const language = i18n.language;
 
@@ -117,18 +119,33 @@ export default function CheckoutPage() {
       setGuestPhone(user.phone || '');
       
       let hasAddress = false;
-      const lastAddressStr = typeof window !== 'undefined' ? localStorage.getItem('freshkart_last_address') : null;
-      if (lastAddressStr) {
-        try {
-          const parsed = JSON.parse(lastAddressStr);
-          if (parsed.address && parsed.flatNo && parsed.pincode) {
-            setAddress(parsed.address);
-            setPincode(parsed.pincode);
-            setFlatNo(parsed.flatNo);
-            setLandmark(parsed.landmark || '');
-            hasAddress = true;
-          }
-        } catch (e) {}
+
+      // 1. Try to load default address from AddressContext
+      const defaultAddr = getDefaultAddress();
+      if (defaultAddr) {
+        setFlatNo(defaultAddr.line1 || '');
+        setAddress(defaultAddr.line2 || defaultAddr.city || '');
+        setPincode(defaultAddr.pincode || '');
+        setLandmark(defaultAddr.landmark || '');
+        setAddressType(defaultAddr.label || 'Home');
+        hasAddress = true;
+      }
+
+      // 2. Fallback to localStorage last address if no default saved address exists
+      if (!hasAddress) {
+        const lastAddressStr = typeof window !== 'undefined' ? localStorage.getItem('nearmart_last_address') : null;
+        if (lastAddressStr) {
+          try {
+            const parsed = JSON.parse(lastAddressStr);
+            if (parsed.address && parsed.flatNo && parsed.pincode) {
+              setAddress(parsed.address);
+              setPincode(parsed.pincode);
+              setFlatNo(parsed.flatNo);
+              setLandmark(parsed.landmark || '');
+              hasAddress = true;
+            }
+          } catch (e) {}
+        }
       }
 
       setStep(hasAddress ? 3 : 2); // Automatically skip Address step if we have a saved address
@@ -136,7 +153,7 @@ export default function CheckoutPage() {
     } else if (!user) {
       setAuthChecked(true);
     }
-  }, [user, authLoading, authChecked]);
+  }, [user, authLoading, authChecked, getDefaultAddress]);
 
   // Step 2 – Address
   const [address, setAddress]       = useState('');
@@ -275,11 +292,11 @@ export default function CheckoutPage() {
 
       // Save for personalized home screen (Returning User logic)
       const lastOrder = {
-        store: 'FreshKart Local',
+        store: 'NearMart Local',
         items: cartItems.slice(0, 3), // Save top 3 items for suggestion
         date: new Date().toISOString()
       };
-      sessionStorage.setItem('freshkart_last_order', JSON.stringify(lastOrder));
+      sessionStorage.setItem('nearmart_last_order', JSON.stringify(lastOrder));
       
       await clearCart();
 
@@ -541,12 +558,12 @@ export default function CheckoutPage() {
                     <button type="button" disabled={!flatNo || !address || pincode.length < 6}
                       onClick={() => {
                         if (typeof window !== 'undefined') {
-                          localStorage.setItem('freshkart_last_address', JSON.stringify({ address, pincode, flatNo, landmark }));
+                          localStorage.setItem('nearmart_last_address', JSON.stringify({ address, pincode, flatNo, landmark }));
                         }
                         setStep(3);
                       }}
                       className="w-full bg-gradient-to-br from-[#16A34A] to-[#22C55E] text-white rounded-2xl py-5 font-black text-lg hover:brightness-110 transition-all shadow-[0_12px_25px_rgba(22,163,74,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 mt-4">
-                      {t('common.continue')} <ChevronRight className="w-6 h-6" strokeWidth={3} />
+                      {t('auth.continue', 'Continue')} <ChevronRight className="w-6 h-6" strokeWidth={3} />
                     </button>
                   </>
                 ) : (
@@ -556,8 +573,8 @@ export default function CheckoutPage() {
                       <p className="text-sm text-emerald-700 dark:text-emerald-400 mt-1">{t('checkout.readyIn', { time: '45 mins', store: 'Anna Nagar Store' })}</p>
                     </div>
                     <button type="button" onClick={() => setStep(3)}
-                      className="w-full bg-emerald-500 text-white rounded-2xl py-3.5 font-black hover:bg-emerald-600 transition-all flex items-center justify-center gap-2 mt-2">
-                      {t('common.continue')} <ChevronRight className="w-5 h-5" />
+                      className="w-full bg-emerald-500 text-white rounded-2xl py-3.5 font-black hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2 mt-2">
+                      {t('auth.continue', 'Continue')} <ChevronRight className="w-5 h-5" />
                     </button>
                   </div>
                 )}
@@ -752,7 +769,7 @@ export default function CheckoutPage() {
           {/* Cart items */}
           <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-              <h2 className="font-black text-gray-800 dark:text-white">{t('cart.yourOrder')}</h2>
+              <h2 className="font-black text-gray-800 dark:text-white">{t('checkout.yourOrder')}</h2>
               <span className="text-xs bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 font-black px-2.5 py-1 rounded-full">{t('cart.itemCount', { count: cartItems.length })}</span>
             </div>
             <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-60 overflow-y-auto no-scrollbar">
@@ -815,7 +832,7 @@ export default function CheckoutPage() {
               </div>
             )}
             <div className="border-t border-gray-100 dark:border-gray-800 pt-3 flex justify-between">
-              <span className="font-black text-gray-900 dark:text-white text-base">{t('checkout.total')}</span>
+              <span className="font-black text-gray-900 dark:text-white text-base">{t('cart.total')}</span>
               <span className="font-black text-emerald-600 dark:text-emerald-400 text-xl">₹{totalAmount.toFixed(0)}</span>
             </div>
             {deliveryFee === 0 && (

@@ -34,7 +34,7 @@ function decodeToken(token: string): { role: AdminRole } | null {
   }
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname === '/api/admin/auth') {

@@ -16,7 +16,7 @@ const getFallbackPath = (lat, lng) => {
   const storeLat = lat + 0.012;
   const storeLng = lng - 0.008;
   return [
-    { lat: storeLat, lng: storeLng, label: "FreshKart Store" },
+    { lat: storeLat, lng: storeLng, label: "NearMart Store" },
     { lat: storeLat - 0.006, lng: storeLng + 0.004, label: "" },
     { lat: lat + 0.002, lng: lng - 0.002, label: "" },
     { lat: lat, lng: lng, label: "Your Location" },

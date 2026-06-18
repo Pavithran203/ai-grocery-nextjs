@@ -5,7 +5,7 @@ const PreferencesContext = createContext();
 
 export const usePreferences = () => useContext(PreferencesContext);
 
-const PREFS_KEY = 'freshkart_prefs';
+const PREFS_KEY = 'nearmart_prefs';
 
 export const PreferencesProvider = ({ children }) => {
   const [viewedCategories, setViewedCategories] = useState({});
