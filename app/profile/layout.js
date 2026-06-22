@@ -15,12 +15,30 @@ import {
   Star
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useLoyalty } from "@/context/LoyaltyContext";
+import { useOrders } from "@/context/OrdersContext";
 
 export default function ProfileLayout({ children }) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { coins } = useLoyalty();
+  const { orders } = useOrders();
+
+  const isPremium = user?.accountType === 'premium' || user?.isPremium === true;
+  const totalSavings = orders ? orders.reduce((sum, order) => sum + (Number(order.discount) || 0), 0) : 0;
 
   const menuItems = [
+    { id: 'overview', label: 'Overview', icon: User, href: '/profile' },
+    { id: 'orders', label: 'My Orders', icon: ShoppingBag, href: '/orders' },
+    { id: 'wishlist', label: 'My Wishlist', icon: Heart, href: '/wishlist' },
+    { id: 'addresses', label: 'Addresses', icon: MapPin, href: '/profile/addresses' },
+    { id: 'payments', label: 'Payments', icon: CreditCard, href: '/profile/payments' },
+    { id: 'security', label: 'Security', icon: ShieldCheck, href: '/profile/settings' }, // redirect security to settings or keep settings
+    { id: 'settings', label: 'Settings', icon: Settings, href: '/profile/settings' },
+  ];
+
+  // Map menuItems back to correct targets
+  const actualMenuItems = [
     { id: 'overview', label: 'Overview', icon: User, href: '/profile' },
     { id: 'orders', label: 'My Orders', icon: ShoppingBag, href: '/orders' },
     { id: 'wishlist', label: 'My Wishlist', icon: Heart, href: '/wishlist' },
@@ -59,7 +77,7 @@ export default function ProfileLayout({ children }) {
             </div>
 
             <nav className="space-y-1">
-              {menuItems.map((item) => {
+              {actualMenuItems.map((item) => {
                 const active = pathname === item.href;
                 return (
                   <Link 
@@ -98,14 +116,14 @@ export default function ProfileLayout({ children }) {
                 <Star className="w-5 h-5" style={{ color: '#A7F3D0' }} />
               </div>
               <div>
-                <h3 className="font-black text-base leading-tight">Premium Member</h3>
-                <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#A7F3D0' }}>Active plan</p>
+                <h3 className="font-black text-base leading-tight">{isPremium ? 'Premium Member' : 'Standard Member'}</h3>
+                <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#A7F3D0' }}>{isPremium ? 'Active plan' : 'Standard Plan'}</p>
               </div>
             </div>
-            <p className="text-xs font-medium mb-4" style={{ color: '#D1FAE5' }}>You've saved ₹1,240 this month!</p>
+            <p className="text-xs font-medium mb-4" style={{ color: '#D1FAE5' }}>You've saved ₹{totalSavings.toLocaleString('en-IN')} this month!</p>
             <div className="rounded-2xl p-3" style={{ backgroundColor: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.1)' }}>
               <p className="text-[10px] font-black uppercase tracking-widest mb-1" style={{ color: '#A7F3D0' }}>Your Rewards</p>
-              <p className="text-2xl font-black tracking-tighter leading-none">🪙 450 <span className="text-xs font-bold" style={{ color: '#A7F3D0' }}>COINS</span></p>
+              <p className="text-2xl font-black tracking-tighter leading-none">🪙 {coins || 0} <span className="text-xs font-bold" style={{ color: '#A7F3D0' }}>COINS</span></p>
             </div>
           </div>
         </aside>

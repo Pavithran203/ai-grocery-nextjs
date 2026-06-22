@@ -272,6 +272,7 @@ export default function CheckoutPage() {
         total: totalAmount,
         subtotal: subTotal,
         deliveryFee,
+        discount: couponDiscount,
         tax: 0
       };
 

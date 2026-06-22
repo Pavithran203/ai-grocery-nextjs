@@ -162,6 +162,16 @@ export const api = {
       }
       return data;
     } catch (e) {
+      // Offline fallback: save user to localStorage locally!
+      const demoUser = {
+        _id: uid,
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone,
+      };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`mock_user_${userData.email}`, JSON.stringify(demoUser));
+      }
       // Do NOT silently return success. Let AuthContext handle the fallback!
       throw new Error(e.message || 'Registration failed');
     }

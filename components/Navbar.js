@@ -131,7 +131,7 @@ export default function Navbar() {
         </button>
 
         {/* Search Bar - Responsive Size */}
-        <div className="flex-1 min-w-0 max-w-2xl mx-1 sm:mx-2 md:mx-4" ref={searchRef}>
+        <div className="flex-1 min-w-[110px] sm:min-w-[180px] max-w-2xl mx-1 sm:mx-2 md:mx-4" ref={searchRef}>
           <form className="relative group" onSubmit={handleSearchSubmit}>
             <div className="absolute inset-y-0 left-2 sm:left-3 lg:left-5 flex items-center pointer-events-none">
               <Search className={`w-3.5 h-3.5 lg:w-5 lg:h-5 ${showSearchDropdown ? 'text-emerald-500' : 'text-gray-400'} group-focus-within:text-emerald-500 transition-colors`} />
@@ -243,19 +243,33 @@ export default function Navbar() {
         {/* Action Buttons */}
         <div className="flex items-center gap-1 sm:gap-2 lg:gap-4 shrink-0">
           {/* Language Selector - Always Visible */}
-          <div className="flex items-center gap-0.5 sm:gap-1 px-1 sm:px-2 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shrink-0">
             <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 shrink-0" />
+            {/* Desktop Language Dropdown */}
             <select 
               value={i18n.language}
               onChange={(e) => i18n.changeLanguage(e.target.value)}
-              className="bg-transparent text-[8px] sm:text-[10px] lg:text-xs font-black text-gray-500 dark:text-gray-400 focus:outline-none cursor-pointer"
+              className="hidden sm:block bg-transparent text-xs lg:text-sm font-bold text-gray-700 dark:text-gray-300 focus:outline-none cursor-pointer pr-1"
             >
-              <option value="en">EN</option>
-              <option value="ta">TA</option>
-              <option value="te">TE</option>
-              <option value="kn">KN</option>
-              <option value="ml">ML</option>
-              <option value="hi">HI</option>
+              <option value="en" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white">English</option>
+              <option value="ta" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white">தமிழ் (Tamil)</option>
+              <option value="te" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white">తెలుగు (Telugu)</option>
+              <option value="kn" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white">ಕನ್ನಡ (Kannada)</option>
+              <option value="ml" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white">മലയാളം (Malayalam)</option>
+              <option value="hi" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white">हिन्दी (Hindi)</option>
+            </select>
+            {/* Mobile Language Dropdown */}
+            <select 
+              value={i18n.language}
+              onChange={(e) => i18n.changeLanguage(e.target.value)}
+              className="block sm:hidden bg-transparent text-[10px] font-bold text-gray-700 dark:text-gray-300 focus:outline-none cursor-pointer pr-0.5 uppercase"
+            >
+              <option value="en" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white">EN</option>
+              <option value="ta" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white">TA</option>
+              <option value="te" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white">TE</option>
+              <option value="kn" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white">KN</option>
+              <option value="ml" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white">ML</option>
+              <option value="hi" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white">HI</option>
             </select>
           </div>
 
@@ -274,14 +288,14 @@ export default function Navbar() {
               <Link 
                 href="/orders" 
                 title="My Orders"
-                className="p-1 sm:p-2 text-emerald-600 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-xl transition-all"
+                className="hidden sm:block p-1 sm:p-2 text-emerald-600 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-xl transition-all"
               >
                 <ClipboardList className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
               </Link>
               <Link 
                 href="/wishlist" 
                 title="Wishlist"
-                className="p-1 sm:p-2 text-rose-500 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-xl transition-all"
+                className="hidden sm:block p-1 sm:p-2 text-rose-500 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-xl transition-all"
               >
                 <Heart className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
               </Link>

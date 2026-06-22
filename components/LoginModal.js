@@ -52,7 +52,7 @@ export default function LoginModal() {
         setOtpMode(false);
         setProfileMode(true);
       } else {
-        setError(t('auth.invalidOtp', 'Invalid OTP. Use 1234 for testing.'));
+        setError(t('auth.invalidOtp', 'Invalid OTP. Please try again.'));
       }
       return;
     }

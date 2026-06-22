@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
           localStorage.setItem(`nearmart_coins_history_${userId}`, '[]');
         }
 
-        return { success: true };
+        return { success: true, user: data.user };
       }
       return { success: false, message: data.message || 'Registration failed' };
     } catch (err) {
@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }) => {
         setAuthToken(data.token);
         localStorage.setItem('nearmart_token', data.token);
         localStorage.setItem('nearmart_user', JSON.stringify(data.user));
-        return { success: true };
+        return { success: true, user: data.user };
       }
       return { success: false, message: data.message || 'Invalid credentials' };
     } catch (err) {
@@ -153,7 +153,7 @@ export const AuthProvider = ({ children }) => {
       const regRes = await register(name, userEmail, password, phone);
       if (regRes.success) {
         // Force the user object to have the name they just typed, even if the backend returns a fallback
-        const updatedUser = { ...regRes.user, name };
+        const updatedUser = { ...regRes.user, name, phone };
         setUser(updatedUser);
         localStorage.setItem('nearmart_user', JSON.stringify(updatedUser));
 
@@ -171,7 +171,7 @@ export const AuthProvider = ({ children }) => {
       const logRes = await login(userEmail, password);
       if (logRes.success) {
         // Force the user object to have the name they just typed
-        const updatedUser = { ...logRes.user, name };
+        const updatedUser = { ...logRes.user, name, phone };
         setUser(updatedUser);
         localStorage.setItem('nearmart_user', JSON.stringify(updatedUser));
 

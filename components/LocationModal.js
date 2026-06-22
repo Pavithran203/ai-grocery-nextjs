@@ -98,38 +98,43 @@ const LabelSelector = ({ value, onChange, t }) => (
   </div>
 );
 
-const AddressCard = ({ addr, isDefault, onSelect, onEdit, onDelete, t }) => (
-  <div className={`loc-addr-card ${isDefault ? 'is-default' : ''}`}>
-    <button className="loc-addr-card-inner" onClick={() => onSelect(addr.id)}>
-      <div className="loc-addr-left">
-        <div className={`loc-addr-badge ${isDefault ? 'active' : ''}`}>
-          <MapPin size={12} />
-          <span>{addr.label === 'Home' ? t('location.home', 'Home') : addr.label === 'Work' ? t('location.work', 'Work') : t('location.other', 'Other')}</span>
+const AddressCard = ({ addr, isDefault, onSelect, onEdit, onDelete, t, user }) => {
+  const displayName = (addr.fullName === 'My Location' && user?.name) ? user.name : (addr.fullName || '');
+  const displayPhone = addr.phone || ((addr.fullName === 'My Location') ? user?.phone : '') || '';
+
+  return (
+    <div className={`loc-addr-card ${isDefault ? 'is-default' : ''}`}>
+      <button className="loc-addr-card-inner" onClick={() => onSelect(addr.id || addr._id)}>
+        <div className="loc-addr-left">
+          <div className={`loc-addr-badge ${isDefault ? 'active' : ''}`}>
+            <MapPin size={12} />
+            <span>{addr.label === 'Home' ? t('location.home', 'Home') : addr.label === 'Work' ? t('location.work', 'Work') : t('location.other', 'Other')}</span>
+          </div>
+          {displayName && <p className="loc-addr-name">{displayName}</p>}
+          <p className="loc-addr-line">
+            {[addr.line1, addr.line2, addr.city, addr.state, addr.pincode].filter(Boolean).join(', ')}
+          </p>
+          {displayPhone && <p className="loc-addr-phone">{displayPhone}</p>}
         </div>
-        {addr.fullName && <p className="loc-addr-name">{addr.fullName}</p>}
-        <p className="loc-addr-line">
-          {[addr.line1, addr.line2, addr.city, addr.state, addr.pincode].filter(Boolean).join(', ')}
-        </p>
-        {addr.phone && <p className="loc-addr-phone">{addr.phone}</p>}
-      </div>
-      <div className="loc-addr-right">
-        {isDefault ? (
-          <CheckCircle size={22} className="loc-addr-check" />
-        ) : (
-          <div className="loc-addr-radio"><div className="loc-addr-radio-inner" /></div>
-        )}
-      </div>
-    </button>
-    <div className="loc-addr-actions">
-      <button className="loc-addr-action-btn" onClick={() => onEdit(addr)}>
-        <Edit3 size={14} /> {t('location.edit', 'Edit')}
+        <div className="loc-addr-right">
+          {isDefault ? (
+            <CheckCircle size={22} className="loc-addr-check" />
+          ) : (
+            <div className="loc-addr-radio"><div className="loc-addr-radio-inner" /></div>
+          )}
+        </div>
       </button>
-      <button className="loc-addr-action-btn delete" onClick={() => onDelete(addr.id)}>
-        <Trash2 size={14} /> {t('location.delete', 'Delete')}
-      </button>
+      <div className="loc-addr-actions">
+        <button className="loc-addr-action-btn" onClick={() => onEdit(addr)}>
+          <Edit3 size={14} /> {t('location.edit', 'Edit')}
+        </button>
+        <button className="loc-addr-action-btn delete" onClick={() => onDelete(addr.id || addr._id)}>
+          <Trash2 size={14} /> {t('location.delete', 'Delete')}
+        </button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 /* ═══════════════════════════════════════
    MAIN LOCATION MODAL
@@ -154,7 +159,7 @@ export default function LocationModal() {
     formatAddress,
   } = useAddress();
 
-  const { isAuthenticated, setLoginModalOpen, loginWithOtp } = useAuth();
+  const { user, isAuthenticated, setLoginModalOpen, loginWithOtp } = useAuth();
   const { t } = useTranslation();
 
   // Steps: 'menu' | 'map' | 'form' | 'otp'
@@ -228,7 +233,7 @@ export default function LocationModal() {
 
   const handleInlineOtpVerify = async () => {
     if (!inlineOtp || inlineOtp.length < 4) {
-      setInlineOtpError(t('auth.invalidOtp', 'Invalid OTP. Use 1234 for testing.'));
+      setInlineOtpError(t('auth.invalidOtp', 'Invalid OTP. Please try again.'));
       return;
     }
     if (inlineOtp === '1234' || inlineOtp === '0000') {
@@ -250,24 +255,28 @@ export default function LocationModal() {
         setInlineOtpError(err.message || 'Verification failed');
       }
     } else {
-      setInlineOtpError(t('auth.invalidOtp', 'Invalid OTP. Use 1234 for testing.'));
+      setInlineOtpError(t('auth.invalidOtp', 'Invalid OTP. Please try again.'));
     }
   };
 
   /* ── Actions ── */
   const openAdd = () => {
     setEditingId(null);
-    setForm(EMPTY_FORM);
+    setForm({
+      ...EMPTY_FORM,
+      fullName: user?.name || '',
+      phone: user?.phone || '',
+    });
     setErrors({});
     setStep('form');
   };
 
   const openEdit = (addr) => {
-    setEditingId(addr.id);
+    setEditingId(addr.id || addr._id);
     setForm({
       label: addr.label || 'Home',
-      fullName: addr.fullName || '',
-      phone: addr.phone || '',
+      fullName: (addr.fullName && addr.fullName !== 'My Location') ? addr.fullName : (user?.name || addr.fullName || ''),
+      phone: addr.phone || user?.phone || '',
       line1: addr.line1 || '',
       line2: addr.line2 || '',
       city: addr.city || '',
@@ -307,7 +316,7 @@ export default function LocationModal() {
 
   const handleOtpVerify = async () => {
     if (!otp || otp.length < 4) {
-      setOtpError(t('auth.invalidOtp', 'Invalid OTP. Use 1234 for testing.'));
+      setOtpError(t('auth.invalidOtp', 'Invalid OTP. Please try again.'));
       return;
     }
     if (otp === '1234' || otp === '0000') {
@@ -344,7 +353,7 @@ export default function LocationModal() {
         setOtpError(err.message || 'Verification failed');
       }
     } else {
-      setOtpError(t('auth.invalidOtp', 'Invalid OTP. Use 1234 for testing.'));
+      setOtpError(t('auth.invalidOtp', 'Invalid OTP. Please try again.'));
     }
   };
 
@@ -517,13 +526,14 @@ export default function LocationModal() {
                 <div className="loc-addr-list">
                   {addresses.map(addr => (
                     <AddressCard
-                      key={addr.id}
+                      key={addr.id || addr._id}
                       addr={addr}
-                      isDefault={addr.id === defaultAddressId}
+                      isDefault={(addr.id === defaultAddressId || addr._id === defaultAddressId)}
                       onSelect={handleSelectDefault}
                       onEdit={openEdit}
                       onDelete={handleDelete}
                       t={t}
+                      user={user}
                     />
                   ))}
                 </div>
@@ -600,10 +610,18 @@ export default function LocationModal() {
                   >
                     Verify & Login
                   </button>
-                ) : isAuthenticated ? (
+                ) : (isAuthenticated && form.phone && form.phone === user?.phone) ? (
                   <span className="text-emerald-600 font-bold text-xs flex items-center gap-1 mr-3">
                     <CheckCircle size={14} className="fill-emerald-100 dark:fill-emerald-950" /> Verified
                   </span>
+                ) : (isAuthenticated && form.phone && form.phone.length === 10) ? (
+                  <button
+                    type="button"
+                    onClick={handleVerifyPhoneClick}
+                    className="loc-field-action-btn"
+                  >
+                    Verify Phone
+                  </button>
                 ) : null}
               />
               {showInlineOtp && !isAuthenticated && (
@@ -615,7 +633,7 @@ export default function LocationModal() {
                       setInlineOtp(val.replace(/\D/g, '').slice(0, 4));
                       if (inlineOtpError) setInlineOtpError('');
                     }}
-                    placeholder="Enter 4-digit code (e.g. 1234)"
+                    placeholder={t('auth.otpPlaceholder', 'Enter 4-digit code')}
                     error={inlineOtpError}
                     icon={ShieldCheck}
                     type="text"
@@ -631,9 +649,6 @@ export default function LocationModal() {
                       </button>
                     ) : null}
                   />
-                  <p className="text-right mr-2 mt-1 text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">
-                    Use 1234 or 0000 for testing
-                  </p>
                 </div>
               )}
               <FormField

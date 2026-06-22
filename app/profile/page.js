@@ -1,8 +1,10 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useOrders } from "../../context/OrdersContext";
 import { useLoyalty } from "../../context/LoyaltyContext";
+import { useAddress } from "../../context/AddressContext";
 import { 
   ShoppingBag, 
   MapPin, 
@@ -20,12 +22,30 @@ export default function ProfileOverview() {
   const { user } = useAuth();
   const { orders } = useOrders();
   const { coins } = useLoyalty();
+  const { addresses } = useAddress();
   const { t } = useTranslation();
+
+  const [savedCardsCount, setSavedCardsCount] = useState(0);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('nearmart_payment_methods');
+      if (stored) {
+        const methods = JSON.parse(stored);
+        const cards = methods.filter(m => m.type === 'card');
+        setSavedCardsCount(cards.length);
+      } else {
+        setSavedCardsCount(0);
+      }
+    } catch (e) {
+      setSavedCardsCount(0);
+    }
+  }, []);
 
   const stats = [
     { label: t('profile.totalOrders'), value: orders?.length?.toString() || '0', icon: ShoppingBag, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-950/20' },
-    { label: t('profile.savedAddresses'), value: (user?.addresses?.length || 0).toString(), icon: MapPin, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/20' },
-    { label: t('profile.savedCards'), value: '0', icon: CreditCard, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950/20' },
+    { label: t('profile.savedAddresses'), value: (addresses?.length || 0).toString(), icon: MapPin, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/20' },
+    { label: t('profile.savedCards'), value: savedCardsCount.toString(), icon: CreditCard, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950/20' },
   ];
 
   const formatOrderDate = (dateStr) => {

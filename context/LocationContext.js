@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAddress } from './AddressContext';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from './AuthContext';
 
 const LocationContext = createContext();
 
@@ -16,6 +17,7 @@ export const LocationProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isLocationModalOpen, setLocationModalOpen] = useState(false);
   const { addresses, addAddress } = useAddress();
+  const { user } = useAuth();
   const { i18n } = useTranslation();
   const language = i18n.language;
 
@@ -106,8 +108,8 @@ export const LocationProvider = ({ children }) => {
             if (addresses.length === 0) {
               addAddress({
                 label: 'Home',
-                fullName: 'My Location',
-                phone: '',
+                fullName: user?.name || 'My Location',
+                phone: user?.phone || '',
                 line1: addr.road || addr.suburb || addr.neighbourhood || '',
                 line2: '',
                 city: addr.city || addr.town || addr.village || '',
