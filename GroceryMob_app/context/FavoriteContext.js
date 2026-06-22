@@ -6,14 +6,17 @@ const FavoriteContext = createContext();
 
 export const useFavorites = () => useContext(FavoriteContext);
 
-const FAVORITES_KEY = '@freshkart_favorites';
-const PREFERRED_STORE_KEY = '@freshkart_preferred_store';
+const FAVORITES_PREFIX = '@freshkart_favorites_';
+const PREFERRED_STORE_PREFIX = '@freshkart_preferred_store_';
 
 export const FavoriteProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([]);
   const [preferredStoreId, setPreferredStoreId] = useState(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+
+  const getFavoritesKey = () => user ? `${FAVORITES_PREFIX}${user.uid || user._id || user.id}` : null;
+  const getPreferredStoreKey = () => user ? `${PREFERRED_STORE_PREFIX}${user.uid || user._id || user.id}` : null;
 
   useEffect(() => {
     const loadData = async () => {
@@ -25,12 +28,24 @@ export const FavoriteProvider = ({ children }) => {
         return;
       }
 
+      const favoritesKey = getFavoritesKey();
+      const preferredKey = getPreferredStoreKey();
+
       try {
-        const storedFavorites = await AsyncStorage.getItem(FAVORITES_KEY);
-        const storedPreferred = await AsyncStorage.getItem(PREFERRED_STORE_KEY);
+        const storedFavorites = favoritesKey ? await AsyncStorage.getItem(favoritesKey) : null;
+        const storedPreferred = preferredKey ? await AsyncStorage.getItem(preferredKey) : null;
         
-        if (storedFavorites) setFavorites(JSON.parse(storedFavorites));
-        if (storedPreferred) setPreferredStoreId(storedPreferred);
+        if (storedFavorites) {
+          setFavorites(JSON.parse(storedFavorites));
+        } else {
+          setFavorites([]);
+        }
+        
+        if (storedPreferred) {
+          setPreferredStoreId(storedPreferred);
+        } else {
+          setPreferredStoreId(null);
+        }
       } catch (e) {
         console.error('Error loading favorite stores:', e);
       } finally {
@@ -41,6 +56,7 @@ export const FavoriteProvider = ({ children }) => {
   }, [user]);
 
   const toggleFavorite = async (storeId) => {
+    const favoritesKey = getFavoritesKey();
     const updatedFavorites = favorites.includes(storeId)
       ? favorites.filter(id => id !== storeId)
       : [...favorites, storeId];
@@ -48,9 +64,9 @@ export const FavoriteProvider = ({ children }) => {
     setFavorites(updatedFavorites);
 
     // Only persist for non-guests
-    if (user && !user.isGuest) {
+    if (user && !user.isGuest && favoritesKey) {
       try {
-        await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(updatedFavorites));
+        await AsyncStorage.setItem(favoritesKey, JSON.stringify(updatedFavorites));
       } catch (e) {
         console.error('Error toggling favorite:', e);
       }
@@ -60,12 +76,15 @@ export const FavoriteProvider = ({ children }) => {
   const isFavorite = (storeId) => favorites.includes(storeId);
 
   const setPreferredStore = async (storeId) => {
+    const preferredKey = getPreferredStoreKey();
     try {
       setPreferredStoreId(storeId);
-      if (storeId) {
-        await AsyncStorage.setItem(PREFERRED_STORE_KEY, storeId);
-      } else {
-        await AsyncStorage.removeItem(PREFERRED_STORE_KEY);
+      if (user && !user.isGuest && preferredKey) {
+        if (storeId) {
+          await AsyncStorage.setItem(preferredKey, storeId);
+        } else {
+          await AsyncStorage.removeItem(preferredKey);
+        }
       }
     } catch (e) {
       console.error('Error setting preferred store:', e);
@@ -85,3 +104,4 @@ export const FavoriteProvider = ({ children }) => {
     </FavoriteContext.Provider>
   );
 };
+

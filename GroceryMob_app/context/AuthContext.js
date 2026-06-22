@@ -47,9 +47,8 @@ export const AuthProvider = ({ children }) => {
       const keysToClear = [
         'groceryAppGuestCart',
         'groceryAppAddresses',
-        'groceryAppWishlist',
-        'groceryAppFavorites',
-        'groceryAppCoins',
+        'groceryAppGuestWishlist',
+        'groceryAppGuestFavorites',
         'groceryAppLocalOrders',
         '@freshkart_guest_orders',
         'groceryAppCoupon',
@@ -61,10 +60,18 @@ export const AuthProvider = ({ children }) => {
         await AsyncStorage.removeItem(key);
       }
 
-      // Find and clear all user-specific order keys
+      // Find and clear all user-specific keys
       const allKeys = await AsyncStorage.getAllKeys();
-      const userOrderKeys = allKeys.filter(k => k.startsWith('@freshkart_orders_'));
-      for (const key of userOrderKeys) {
+      const prefixesToClear = [
+        '@freshkart_orders_',
+        '@freshkart_wishlist_',
+        '@freshkart_coins_',
+        '@freshkart_coins_history_',
+        '@freshkart_favorites_',
+        '@freshkart_preferred_store_'
+      ];
+      const userKeys = allKeys.filter(k => prefixesToClear.some(pref => k.startsWith(pref)));
+      for (const key of userKeys) {
         await AsyncStorage.removeItem(key);
       }
     } catch (e) {
