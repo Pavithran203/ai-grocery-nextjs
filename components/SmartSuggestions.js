@@ -5,7 +5,7 @@ import { api } from "@/services/api";
 import ProductCard from "./ProductCard";
 import { useTranslation } from "react-i18next";
 import { BrainCircuit, Package, ChevronRight, Sparkles, ShoppingBag } from "lucide-react";
-import Image from "next/image";
+import SafeImage from "./SafeImage";
 
 export default function SmartSuggestions() {
   const { cartItems, addToCart } = useCart();
@@ -144,23 +144,18 @@ export default function SmartSuggestions() {
                                        i18n.language === 'ml' && p.name_ml ? p.name_ml :
                                        i18n.language === 'hi' && p.name_hi ? p.name_hi :
                                        p.name;
-                        const fallbackImage = 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_200,h_200,q_auto,f_auto/samples/food/fish-vegetables.jpg';
-                        const getValidImage = () => {
-                          const img = p.image || p.image_url;
-                          if (!img || img === 'undefined' || img === 'null') return fallbackImage;
-                          if (img.startsWith('http') || img.startsWith('/')) return img;
-                          return fallbackImage;
-                        };
-
                         return (
                           <div key={p.id} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-3 py-1.5 shadow-sm">
                             <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0">
-                              <Image 
-                                src={getValidImage()} 
+                              <SafeImage 
+                                src={p.image || p.image_url} 
                                 alt={itemName || 'Item'} 
+                                type="product"
+                                entityId={p.id}
+                                productName={itemName}
+                                componentName="SmartSuggestions"
                                 fill
                                 sizes="32px"
-                                className="object-cover" 
                               />
                             </div>
                             <span className="text-xs font-black text-gray-700 dark:text-gray-300 truncate max-w-[120px]">{itemName}</span>

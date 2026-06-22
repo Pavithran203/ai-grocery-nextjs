@@ -80,21 +80,29 @@ export const LoyaltyProvider = ({ children }) => {
     }
   }, [user]);
 
-  const addCoins = useCallback((amount, desc) => {
+  const addCoins = useCallback((amount, desc, orderId) => {
     const finalDesc = desc || t('loyalty.earnedFromOrder');
-    const currentCoins = coinsRef.current;
-    const newTotal = currentCoins + amount;
-    const newEntry = {
-      id: Date.now().toString(36) + Math.random().toString(36).substring(2, 7),
-      type: 'earn',
-      amount,
-      desc: finalDesc,
-      date: new Date().toISOString(),
-    };
-
-    coinsRef.current = newTotal;
-    setCoins(newTotal);
+    
     setHistory(prev => {
+      if (orderId && prev.some(item => item.orderId === orderId)) {
+        console.log(`[Loyalty] Order ${orderId} already credited. Skipping.`);
+        return prev;
+      }
+      
+      const currentCoins = coinsRef.current;
+      const newTotal = currentCoins + amount;
+      coinsRef.current = newTotal;
+      setCoins(newTotal);
+
+      const newEntry = {
+        id: Date.now().toString(36) + Math.random().toString(36).substring(2, 7),
+        type: 'earn',
+        amount,
+        desc: finalDesc,
+        date: new Date().toISOString(),
+        orderId,
+      };
+
       const updated = [newEntry, ...prev];
       persistData(newTotal, updated);
       return updated;

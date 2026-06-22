@@ -12,8 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import Image from "next/image";
-
+import SafeImage from "@/components/SafeImage";
 export default function WishlistPage() {
   const { wishlistItems = [], removeFromWishlist, clearWishlist } = useWishlist();
   const { addToCart } = useCart();
@@ -80,12 +79,17 @@ export default function WishlistPage() {
         {wishlistItems.map((product) => (
           <div key={product.id} className="bg-white dark:bg-gray-900 rounded-[32px] border border-gray-100 dark:border-gray-800 p-4 shadow-sm group hover:border-emerald-200 transition-all flex flex-col relative">
             <div className="relative aspect-square rounded-[24px] overflow-hidden bg-gray-50 dark:bg-gray-800 mb-6">
-              <Image 
-                src={(product.image_url || product.image || '').startsWith('http') || (product.image_url || product.image || '').startsWith('/') ? (product.image_url || product.image) : 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_400,h_400,q_auto,f_auto/samples/food/spices.jpg'} 
+              <SafeImage 
+                src={product.image_url || product.image} 
                 alt={product.name || 'Product Image'}
+                type="product"
+                entityId={product.id}
+                productName={product.name}
+                componentName="WishlistPage"
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                className="object-cover group-hover:scale-110 transition-transform duration-700"
+                className="group-hover:scale-110 transition-transform duration-700"
+                objectFit="cover"
               />
               <button 
                 onClick={() => removeFromWishlist(product.id)}

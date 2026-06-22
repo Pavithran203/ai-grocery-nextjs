@@ -2,6 +2,7 @@
 import React from 'react';
 import { Package, Clock, Sparkles } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import SafeImage from '../SafeImage';
 
 export default function ComboOffers({ bundles }) {
   const { addToCart, setIsCartOpen } = useCart();
@@ -76,8 +77,18 @@ export default function ComboOffers({ bundles }) {
                 
                 <div className="flex -space-x-4 mb-4 mt-2">
                   {bundle.items.map((item, i) => (
-                    <div key={i} className="w-12 h-12 rounded-full border-2 border-white shadow-md overflow-hidden bg-white shrink-0">
-                      <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                    <div key={i} className="relative w-12 h-12 rounded-full border-2 border-white shadow-md overflow-hidden bg-white shrink-0">
+                      <SafeImage 
+                        src={item.image_url} 
+                        alt={item.name} 
+                        type="product"
+                        entityId={item.id}
+                        productName={item.name}
+                        componentName="ComboOffers"
+                        fill
+                        sizes="48px"
+                        objectFit="cover"
+                      />
                     </div>
                   ))}
                   {bundle.items.length > 3 && (

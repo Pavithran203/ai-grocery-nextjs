@@ -10,7 +10,7 @@ import { useStore } from "@/context/StoreContext";
 import { useLocation } from "@/context/LocationContext";
 import { useAddress } from "@/context/AddressContext";
 import { api } from "@/services/api";
-
+import SafeImage from "./SafeImage";
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -198,8 +198,18 @@ export default function Navbar() {
                           }}
                           className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-colors text-left"
                         >
-                          <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-hidden shrink-0 border border-gray-200 dark:border-gray-700">
-                            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                          <div className="relative w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-hidden shrink-0 border border-gray-200 dark:border-gray-700">
+                            <SafeImage 
+                              src={product.image_url} 
+                              alt={product.name} 
+                              type="product"
+                              entityId={product.id}
+                              productName={product.name}
+                              componentName="NavbarSearch"
+                              fill
+                              sizes="40px"
+                              objectFit="cover"
+                            />
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="text-sm font-bold text-gray-800 dark:text-white truncate">{product.name}</h4>

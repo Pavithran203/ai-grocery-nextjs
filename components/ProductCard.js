@@ -4,25 +4,14 @@ import { useCart } from "../context/CartContext";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { getSafeProductImage } from "../services/imageUtils";
+import SafeImage from "./SafeImage";
 
 export default function ProductCard({ product }) {
   const router = useRouter();
   const { cartItems, addToCart, updateQuantity } = useCart();
   const [wishlist, setWishlist] = useState(false);
-  const [imgSrc, setImgSrc] = useState(null);
   const { t, i18n } = useTranslation();
   const language = i18n.language;
-
-  const fallbackImage = getSafeProductImage(product, null, 9999);
-
-  const getValidImage = () => {
-    const img = imgSrc || product.image || product.image_url;
-    return getSafeProductImage(product, img, 1000);
-  };
-
-  const currentImage = getValidImage();
 
   const inCart = cartItems.find(item => item.id === product.id);
   const discount = product.discount || 0;
@@ -74,17 +63,17 @@ export default function ProductCard({ product }) {
             </div>
           )}
 
-          <Image
-            src={currentImage}
+          <SafeImage
+            src={product.image || product.image_url}
             alt={product.name || 'Product Image'}
+            type="product"
+            entityId={product.id}
+            productName={product.name}
+            componentName="ProductCard"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-contain p-4 group-hover:scale-110 transition-transform duration-500"
-            onError={() => {
-              if (currentImage !== fallbackImage) {
-                setImgSrc(fallbackImage);
-              }
-            }}
+            className="p-4 group-hover:scale-110 transition-transform duration-500"
+            objectFit="contain"
           />
         </div>
 

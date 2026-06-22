@@ -46,7 +46,7 @@ export default function AddressesPage() {
 
   const startEdit = (addr) => {
     setFormData(addr);
-    setEditingId(addr.id);
+    setEditingId(addr.id || addr._id);
     setIsAdding(true);
   };
 
@@ -175,7 +175,7 @@ export default function AddressesPage() {
           </div>
         ) : (
           addresses.map((addr) => (
-            <div key={addr.id} className={`bg-white dark:bg-gray-900 rounded-[32px] border-2 transition-all p-6 group relative overflow-hidden ${
+            <div key={addr.id || addr._id} className={`bg-white dark:bg-gray-900 rounded-[32px] border-2 transition-all p-6 group relative overflow-hidden ${
               addr.isDefault ? 'border-emerald-500 shadow-md shadow-emerald-500/5' : 'border-gray-100 dark:border-gray-800 shadow-sm'
             }`}>
               <div className="flex items-start justify-between mb-4">
@@ -198,7 +198,7 @@ export default function AddressesPage() {
                     <Edit3 size={18} />
                   </button>
                   <button 
-                    onClick={() => removeAddress(addr.id)}
+                    onClick={() => removeAddress(addr.id || addr._id)}
                     className="p-2 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-rose-500 rounded-xl transition-all"
                   >
                     <Trash2 size={18} />
@@ -215,7 +215,7 @@ export default function AddressesPage() {
 
               {!addr.isDefault && (
                 <button 
-                  onClick={() => setDefaultAddress(addr.id)}
+                  onClick={() => setDefaultAddress(addr.id || addr._id)}
                   className="mt-6 w-full py-3 rounded-xl border border-gray-100 dark:border-gray-800 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-emerald-600 hover:border-emerald-200 transition-all"
                 >
                   Set as Default

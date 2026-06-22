@@ -3,8 +3,7 @@ import { Zap, ShieldCheck, Clock, RotateCcw, Sparkles } from "lucide-react";
 import Link from "next/link";
 import AddToCartButton from "@/app/product/[id]/AddToCartButton";
 import { useTranslation } from "react-i18next";
-import Image from "next/image";
-
+import SafeImage from "./SafeImage";
 export default function ProductDetailContent({ product, isModal = false }) {
   const { t, i18n } = useTranslation();
   const language = i18n.language;
@@ -15,12 +14,17 @@ export default function ProductDetailContent({ product, isModal = false }) {
       {/* Image Section */}
       <div className={`w-full lg:w-[42%] bg-gray-50/30 dark:bg-gray-900/30 p-6 flex items-center justify-center relative border-b lg:border-b-0 lg:border-r border-gray-50 dark:border-gray-900 ${isModal ? 'bg-white dark:bg-gray-950' : ''}`}>
         <div className="relative w-full aspect-square max-w-[320px] group">
-          <Image 
-            src={(product.image_url || product.image || '').startsWith('http') || (product.image_url || product.image || '').startsWith('/') ? (product.image_url || product.image) : 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_600,h_600,q_auto,f_auto/samples/food/fish-vegetables.jpg'} 
+          <SafeImage 
+            src={product.image_url || product.image} 
             alt={productName || 'Product Image'} 
+            type="product"
+            entityId={product.id}
+            productName={product.name}
+            componentName="ProductDetailContent"
             fill
             sizes="(max-width: 768px) 320px, 320px"
-            className="object-contain drop-shadow-2xl transition-transform duration-700 group-hover:scale-105"
+            className="drop-shadow-2xl transition-transform duration-700 group-hover:scale-105"
+            objectFit="contain"
           />
           {/* Premium Badge */}
           <div className="absolute top-0 left-0 z-20 flex items-center gap-1.5 bg-white dark:bg-gray-800 px-3 py-1.5 rounded-xl font-black text-[10px] tracking-widest shadow-xl border border-amber-200 dark:border-amber-900/50 uppercase">

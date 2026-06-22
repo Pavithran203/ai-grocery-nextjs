@@ -6,6 +6,7 @@ import { useCart } from "@/context/CartContext";
 import { products, categories } from "@/services/mockData";
 import { useLanguage } from "@/context/LanguageContext";
 import { translations } from "@/services/translations";
+import SafeImage from "./SafeImage";
 
 // ─── Bot knowledge base ───────────────────────────────────────────
 const BOT_INTENTS = [
@@ -123,7 +124,19 @@ function BotMessage({ msg, onChipClick, onAddToCart }) {
           <div className="flex gap-2 flex-wrap">
             {msg.products.slice(0, 3).map(p => (
               <div key={p.id} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-2.5 flex items-center gap-2 shadow-sm w-full sm:w-auto">
-                <img src={p.image} alt={p.name} className="w-9 h-9 rounded-xl object-cover bg-gray-50 shrink-0" />
+                <div className="relative w-9 h-9 rounded-xl overflow-hidden bg-gray-50 shrink-0">
+                  <SafeImage 
+                    src={p.image} 
+                    alt={p.name} 
+                    type="product"
+                    entityId={p.id}
+                    productName={p.name}
+                    componentName="GroceryChatbot"
+                    fill
+                    sizes="36px"
+                    objectFit="cover"
+                  />
+                </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold text-gray-800 dark:text-white truncate max-w-[100px]">{p.name}</p>
                   <p className="text-xs text-teal-600 font-black">₹{p.price}</p>

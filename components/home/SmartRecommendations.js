@@ -6,8 +6,7 @@ import { usePreferences } from '@/context/PreferencesContext';
 import { useCart } from '@/context/CartContext';
 import { getSmartPicks, getRecommendationReason } from '@/services/recommendationService';
 import Link from 'next/link';
-import Image from 'next/image';
-
+import SafeImage from '../SafeImage';
 export default function SmartRecommendations({ allProducts = [] }) {
   const { t, i18n } = useTranslation();
   const language = i18n.language;
@@ -70,12 +69,17 @@ export default function SmartRecommendations({ allProducts = [] }) {
           <div key={`rec-${item.id}`} className="min-w-[200px] sm:min-w-[240px] rounded-[32px] sm:rounded-[40px] p-5 sm:p-6 border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 relative group transition-all hover:shadow-[0_20px_60px_-15px_rgba(16,185,129,0.15)] hover:-translate-y-3">
             {/* Product Card */}
             <div className="relative w-full aspect-square rounded-[32px] bg-gray-50 dark:bg-gray-800 mb-6 overflow-hidden shadow-inner group-hover:bg-white dark:group-hover:bg-gray-950 transition-colors">
-              <Image 
-                src={(item.image_url || item.image || '').startsWith('http') || (item.image_url || item.image || '').startsWith('/') ? (item.image_url || item.image) : 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_400,h_400,q_auto,f_auto/samples/food/spices.jpg'} 
+              <SafeImage 
+                src={item.image_url || item.image} 
                 alt={item.name || 'Product Image'} 
+                type="product"
+                entityId={item.id}
+                productName={item.name}
+                componentName="SmartRecommendations"
                 fill
                 sizes="(max-width: 768px) 240px, 240px"
-                className="object-cover p-4 transition-transform duration-700 group-hover:scale-110" 
+                className="p-4 transition-transform duration-700 group-hover:scale-110" 
+                objectFit="cover"
               />
             </div>
 

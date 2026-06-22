@@ -3,8 +3,7 @@ import { X, ShoppingCart, Star, ShieldCheck, Zap, Heart, Share2, Info, Sparkles 
 import { useCart } from "@/context/CartContext";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import Image from "next/image";
-
+import SafeImage from "./SafeImage";
 export default function ProductModal({ product, onClose }) {
   const { cartItems, addToCart, updateQuantity } = useCart();
   const { t, i18n } = useTranslation();
@@ -12,7 +11,7 @@ export default function ProductModal({ product, onClose }) {
   const inCart = cartItems.find(item => item.id === product.id);
 
   const [isClosing, setIsClosing] = useState(false);
-  const [imgSrc, setImgSrc] = useState(null);
+
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -94,13 +93,16 @@ export default function ProductModal({ product, onClose }) {
             {/* Image Section */}
             <div className="w-full md:w-1/2">
               <div className="relative rounded-[32px] overflow-hidden p-8 aspect-square flex items-center justify-center bg-emerald-50/50 dark:bg-emerald-500/5 shadow-inner">
-                <Image 
-                  src={(imgSrc || product.image_url || '').startsWith('http') || (imgSrc || product.image_url || '').startsWith('/') ? (imgSrc || product.image_url) : 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_600,h_600,q_auto,f_auto/samples/food/fish-vegetables.jpg'} 
+                <SafeImage 
+                  src={product.image_url || product.image} 
                   alt={productName || 'Product Image'} 
+                  type="product"
+                  entityId={product.id}
+                  productName={product.name}
+                  componentName="ProductModal"
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-contain"
-                  onError={() => setImgSrc(`https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_600,h_600,q_auto,f_auto/samples/food/fish-vegetables.jpg`)}
+                  objectFit="contain"
                 />
                 {parseFloat(product.rating) >= 4.8 && (
                   <div className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-gradient-to-br from-amber-400 to-orange-500 text-white px-3 py-1 rounded-xl font-black text-[10px] tracking-widest shadow-xl shadow-amber-500/20 uppercase border border-white/20 animate-fadeIn">

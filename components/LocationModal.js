@@ -363,7 +363,7 @@ export default function LocationModal() {
 
   const handleSelectDefault = (id) => {
     setDefaultAddress(id);
-    const addr = addresses.find(a => a.id === id);
+    const addr = addresses.find(a => a.id === id || a._id === id);
     if (addr) {
       const text = [addr.city, addr.state].filter(Boolean).join(', ');
       if (text) setLocationText(text);

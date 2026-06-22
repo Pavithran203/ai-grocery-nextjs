@@ -1,0 +1,5 @@
+name: 'Admin User',
+      email: 'admin@freshkart.com',
+      password: 'admin123',
+      phone: '9999999999',
+      role: 'admin',

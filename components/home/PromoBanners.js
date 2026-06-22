@@ -4,6 +4,7 @@ import { ChevronRight, Timer } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getActiveCampaigns, PROMO_BANNERS } from '@/data/campaigns';
 import Link from 'next/link';
+import SafeImage from '../SafeImage';
 
 const useCountdown = (targetDate) => {
   const [timeLeft, setTimeLeft] = useState(null);
@@ -189,8 +190,16 @@ export default function PromoBanners() {
                 </div>
 
                 <div className="hidden lg:block shrink-0">
-                  <div className="w-64 h-64 rounded-[48px] overflow-hidden border-[12px] border-white/10 relative shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500" style={{ backgroundColor: colorEnd }}>
-                    <img src={item.bannerImage || 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_800,h_400,q_auto,f_auto/samples/food/fish-vegetables.jpg'} alt={item.title} className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_800,h_400,q_auto,f_auto/samples/food/fish-vegetables.jpg'; }} />
+                  <div className="relative w-64 h-64 rounded-[48px] overflow-hidden border-[12px] border-white/10 shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500" style={{ backgroundColor: colorEnd }}>
+                    <SafeImage 
+                      src={item.bannerImage || 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_800,h_400,q_auto,f_auto/samples/food/fish-vegetables.jpg'} 
+                      alt={item.title} 
+                      type="banner"
+                      componentName="PromoBanners"
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 256px"
+                      objectFit="cover"
+                    />
                   </div>
                 </div>
               </div>

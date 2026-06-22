@@ -15,7 +15,8 @@ const isValidHttpUrl = (value) => {
   return /^https?:\/\//i.test(value);
 };
 
-const isPlaceholderUrl = (value) => {
+// Export added for SafeImage.js component
+export const isPlaceholderUrl = (value) => {
   const normalized = normalizeUrl(value).toLowerCase();
   if (!normalized) return true;
   return PLACEHOLDER_PATTERNS.some((pattern) => normalized.includes(pattern.toLowerCase()));

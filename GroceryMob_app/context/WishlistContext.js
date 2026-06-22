@@ -11,14 +11,9 @@ export const WishlistProvider = ({ children }) => {
   const [wishlist, setWishlist] = useState([]);
   const { user } = useAuth();
 
+  // Load wishlist on mount (regardless of user status)
   useEffect(() => {
     const loadWishlist = async () => {
-      // Don't load persisted wishlist for guests
-      if (!user || user.isGuest) {
-        setWishlist([]);
-        return;
-      }
-      
       try {
         const stored = await AsyncStorage.getItem('@freshkart_wishlist');
         if (stored) {
@@ -29,12 +24,9 @@ export const WishlistProvider = ({ children }) => {
       }
     };
     loadWishlist();
-  }, [user]);
+  }, []);
 
   const saveWishlist = async (items) => {
-    // Only save to storage if user is not a guest
-    if (!user || user.isGuest) return;
-    
     try {
       await AsyncStorage.setItem('@freshkart_wishlist', JSON.stringify(items));
     } catch (e) {

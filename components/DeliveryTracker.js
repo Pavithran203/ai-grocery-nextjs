@@ -5,8 +5,10 @@ import {
   ChefHat, Bike, Home, Clock, Navigation, Sparkles, ArrowLeft
 } from "lucide-react";
 import { useLocation } from "@/context/LocationContext";
+import { useLoyalty } from "@/context/LoyaltyContext";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import SafeImage from "./SafeImage";
 import "leaflet/dist/leaflet.css";
 import { useTranslation } from "react-i18next";
 
@@ -479,8 +481,18 @@ export default function DeliveryTracker({ order }) {
             <div className="space-y-4">
               {order.items.map((item, idx) => (
                 <div key={idx} className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 overflow-hidden shrink-0">
-                    <img src={item.image_url || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&q=80&w=100'} alt={item.name} className="w-full h-full object-cover" />
+                  <div className="relative w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 overflow-hidden shrink-0">
+                    <SafeImage 
+                      src={item.image_url || item.image} 
+                      alt={item.name} 
+                      type="product"
+                      entityId={item.id}
+                      productName={item.name}
+                      componentName="DeliveryTracker"
+                      fill
+                      sizes="48px"
+                      objectFit="cover"
+                    />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-sm text-gray-900 dark:text-gray-100 truncate">{item.name}</p>

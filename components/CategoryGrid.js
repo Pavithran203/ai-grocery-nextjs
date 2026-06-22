@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import Image from "next/image";
+import SafeImage from "./SafeImage";
 
 export default function CategoryGrid({ categories }) {
   const router = useRouter();
@@ -28,12 +28,16 @@ export default function CategoryGrid({ categories }) {
               className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-transparent group-hover:border-teal-400 shadow-sm group-hover:shadow-xl group-hover:shadow-teal-400/20 group-hover:-translate-y-1.5 transition-all duration-300 relative"
               style={{ background: cat.color || '#F0FFF8' }}
             >
-              <Image
-                src={(cat.image_url || '').startsWith('http') || (cat.image_url || '').startsWith('/') ? cat.image_url : 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_400,h_400,q_auto,f_auto/samples/food/spices.jpg'}
+              <SafeImage
+                src={cat.image_url}
                 alt={catName || 'Category'}
+                type="product"
+                entityId={cat.id}
+                productName={cat.name}
+                componentName="CategoryGrid"
                 fill
                 sizes="(max-width: 768px) 80px, 100px"
-                className="object-cover mix-blend-multiply dark:mix-blend-normal group-hover:scale-110 transition-transform duration-500"
+                className="mix-blend-multiply dark:mix-blend-normal group-hover:scale-110 transition-transform duration-500"
               />
               {/* Gradient overlay on hover */}
               <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity"

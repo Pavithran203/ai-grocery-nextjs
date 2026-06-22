@@ -6,8 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import { couponService } from "@/services/couponService";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-
+import SafeImage from "./SafeImage";
 const COUPONS = [
   { code: 'FRESH50', discount: 50, minOrder: 500, desc: 'Save ₹50 on orders above ₹500' },
   { code: 'FIRST100', discount: 100, minOrder: 800, desc: 'Save ₹100 on your first order' },
@@ -228,23 +227,19 @@ export default function CartDrawer() {
                     const discount = item.discount || 0;
                     const originalPrice = discount > 0 ? Math.round(item.price / (1 - discount / 100)) : null;
 
-                    const fallbackImage = 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_200,h_200,q_auto,f_auto/samples/food/fish-vegetables.jpg';
-                    const getValidImage = () => {
-                      const img = item.image || item.image_url;
-                      if (!img || img === 'undefined' || img === 'null') return fallbackImage;
-                      if (img.startsWith('http') || img.startsWith('/')) return img;
-                      return fallbackImage;
-                    };
-
                     return (
                       <div key={item.id} className="px-4 py-3 flex items-center gap-3 group">
                         <div className="relative w-14 h-14 rounded-xl bg-gray-50 dark:bg-gray-800 overflow-hidden shrink-0 border border-gray-100 dark:border-gray-700 p-1">
-                          <Image 
-                            src={getValidImage()} 
+                          <SafeImage 
+                            src={item.image || item.image_url} 
                             alt={item.name || 'Item'} 
+                            type="product"
+                            entityId={item.id}
+                            productName={item.name}
+                            componentName="CartDrawer"
                             fill
                             sizes="56px"
-                            className="object-contain" 
+                            objectFit="contain"
                           />
                         </div>
 

@@ -1,0 +1,7 @@
+cd e:\Ai-Based-Grocery-Web-and-App-Development-main\backend
+npm run dev        # starts backend on nodemon (auto-reload)
+
+cd e:\Ai-Based-Grocery-Web-and-App-Development-main
+npm run dev        # starts Next.js dev server
+
+admin pasword : admin123

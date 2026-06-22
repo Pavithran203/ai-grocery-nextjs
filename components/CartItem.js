@@ -1,8 +1,7 @@
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useTranslation } from "react-i18next";
-import Image from "next/image";
-
+import SafeImage from "./SafeImage";
 export default function CartItem({ item }) {
   const { updateQuantity, removeFromCart } = useCart();
   const { i18n } = useTranslation();
@@ -14,23 +13,18 @@ export default function CartItem({ item }) {
                  i18n.language === 'hi' && item.name_hi ? item.name_hi :
                  item.name;
 
-  const fallbackImage = 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_200,h_200,q_auto,f_auto/samples/food/fish-vegetables.jpg';
-  const getValidImage = () => {
-    const img = item.image || item.image_url;
-    if (!img || img === 'undefined' || img === 'null') return fallbackImage;
-    if (img.startsWith('http') || img.startsWith('/')) return img;
-    return fallbackImage;
-  };
-
   return (
     <div className="flex items-center gap-4 py-4 border-b border-gray-100 dark:border-gray-800">
       <div className="relative w-20 h-20 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0">
-        <Image 
-          src={getValidImage()} 
+        <SafeImage 
+          src={item.image || item.image_url} 
           alt={itemName || 'Cart Item'} 
+          type="product"
+          entityId={item.id}
+          productName={itemName}
+          componentName="CartItem"
           fill
           sizes="80px"
-          className="object-cover"
         />
       </div>
       

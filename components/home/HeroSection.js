@@ -1,8 +1,8 @@
 "use client";
 
 import React from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import SafeImage from '../SafeImage';
 import { useTranslation } from 'react-i18next';
 
 export default function HeroSection() {
@@ -66,13 +66,16 @@ export default function HeroSection() {
           {/* Circular grocery image */}
           <div className="hero-img-ring">
             <div className="hero-img-inner">
-              <Image
+              <SafeImage
                 src="https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_800,h_800,q_auto,f_auto/samples/food/fish-vegetables.jpg"
                 alt={t('home.heroImageAlt', 'Fresh vegetables and groceries')}
+                type="banner"
+                componentName="HeroSection"
                 fill
                 className="hero-img"
                 sizes="(max-width: 768px) 280px, 380px"
                 priority
+                objectFit="cover"
               />
             </div>
           </div>

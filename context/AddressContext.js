@@ -84,7 +84,7 @@ export const AddressProvider = ({ children }) => {
         const updatedAddresses = await api.addAddress(addr);
         if (updatedAddresses) {
           setAddresses(updatedAddresses);
-          const newId = updatedAddresses[updatedAddresses.length - 1]._id;
+          const newId = updatedAddresses[updatedAddresses.length - 1]._id || updatedAddresses[updatedAddresses.length - 1].id;
           if (updatedAddresses.length === 1) setDefaultAddressId(newId);
           return;
         }

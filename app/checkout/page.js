@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
 import { useAddress } from "@/context/AddressContext";
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import SafeImage from "@/components/SafeImage";
 
 // ─────────────────────────────────────────
 // Step indicator
@@ -775,23 +775,19 @@ export default function CheckoutPage() {
             </div>
             <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-60 overflow-y-auto no-scrollbar">
               {cartItems.map(item => {
-                const fallbackImage = 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_200,h_200,q_auto,f_auto/samples/food/fish-vegetables.jpg';
-                const getValidImage = () => {
-                  const img = item.image_url || item.image;
-                  if (!img || img === 'undefined' || img === 'null') return fallbackImage;
-                  if (img.startsWith('http') || img.startsWith('/')) return img;
-                  return fallbackImage;
-                };
-
                 return (
                 <div key={item.id} className="flex items-center gap-3 px-5 py-3">
                   <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-gray-50">
-                    <Image 
-                      src={getValidImage()} 
+                    <SafeImage 
+                      src={item.image_url || item.image} 
                       alt={item.name || 'Item'} 
+                      type="product"
+                      entityId={item.id}
+                      productName={item.name}
+                      componentName="CheckoutPage"
                       fill
                       sizes="40px"
-                      className="object-cover" 
+                      objectFit="cover"
                     />
                   </div>
                   <div className="flex-1 min-w-0">

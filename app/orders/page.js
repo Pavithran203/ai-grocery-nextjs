@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import SafeImage from '@/components/SafeImage';
 
 export default function OrdersPage() {
   const { orders, cancelOrder, loadOrders } = useOrders();
@@ -337,8 +338,18 @@ export default function OrdersPage() {
                   <div className="py-4 flex items-center gap-3 overflow-x-auto no-scrollbar">
                     {order.items.map((item, idx) => (
                       <div key={idx} className="flex items-center gap-2 shrink-0 bg-gray-50 dark:bg-gray-950 p-2 rounded-2xl border border-gray-100 dark:border-gray-800 hover:border-emerald-300 transition-all">
-                        <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 overflow-hidden border border-gray-200 dark:border-gray-700">
-                          <img src={item.image_url || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&q=80&w=100'} alt={item.name} className="w-full h-full object-cover" />
+                        <div className="relative w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 overflow-hidden border border-gray-200 dark:border-gray-700">
+                          <SafeImage 
+                            src={item.image_url || item.image} 
+                            alt={item.name} 
+                            type="product"
+                            entityId={item.id}
+                            productName={item.name}
+                            componentName="OrdersFeed"
+                            fill
+                            sizes="40px"
+                            objectFit="cover"
+                          />
                         </div>
                         <div className="text-xs max-w-[120px]">
                           <p
@@ -594,9 +605,19 @@ export default function OrdersPage() {
                           <div key={idx} className="p-3 flex items-center gap-3 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-950 transition-colors">
                             <div 
                               onClick={() => { setSelectedOrder(null); router.push(`/product/${item.id}`); }}
-                              className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-150 dark:border-gray-800 overflow-hidden shrink-0 cursor-pointer hover:ring-2 hover:ring-emerald-400 transition-all"
+                              className="relative w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-150 dark:border-gray-800 overflow-hidden shrink-0 cursor-pointer hover:ring-2 hover:ring-emerald-400 transition-all"
                             >
-                              <img src={item.image_url || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&q=80&w=100'} alt={item.name} className="w-full h-full object-cover" />
+                              <SafeImage 
+                                src={item.image_url || item.image} 
+                                alt={item.name} 
+                                type="product"
+                                entityId={item.id}
+                                productName={item.name}
+                                componentName="OrderDetails"
+                                fill
+                                sizes="48px"
+                                objectFit="cover"
+                              />
                             </div>
                             <div className="flex-1 min-w-0">
                               <h4 
