@@ -17,7 +17,7 @@ const PickCard = memo(({ product, reason, onAdd, onPress, t }) => {
       <View style={styles.reasonTag}>
         <Text style={styles.reasonText}>{t(reason)}</Text>
       </View>
-      <FallbackImage source={{ uri: product.image }} style={styles.image} />
+      <FallbackImage source={{ uri: product.image }} style={styles.image} type="product" productName={product.name} entityId={product.id || product._id} />
       <Text numberOfLines={2} style={styles.name}>{t(product.name)}</Text>
       <Text style={styles.unit}>{t(product.unit)}</Text>
       <View style={styles.bottomRow}>

@@ -22,7 +22,7 @@ export default function CategorySection({ categories, navigation }) {
           style={styles.item}
         >
           <View style={styles.imageWrapper}>
-            <FallbackImage source={{ uri: category.image }} style={styles.image} />
+            <FallbackImage source={{ uri: category.image }} style={styles.image} type="category" />
           </View>
           <Text style={styles.name}>{t(category.name)}</Text>
         </TouchableOpacity>

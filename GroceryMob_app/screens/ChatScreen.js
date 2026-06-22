@@ -99,7 +99,7 @@ export default function ChatScreen({ navigation }) {
       <View style={styles.widgetBox}>
         {products.slice(0, 10).map(product => (
           <View key={product.id} style={styles.productRow}>
-            <FallbackImage source={{ uri: product.image }} style={styles.prodImg} />
+            <FallbackImage source={{ uri: product.image }} style={styles.prodImg} type="product" productName={product.name} entityId={product.id || product._id} />
             <View style={styles.prodInfo}>
               <Text numberOfLines={1} style={styles.prodName}>{product.name}</Text>
               <Text style={styles.prodMeta}>{product.unit || '1 kg'}</Text>

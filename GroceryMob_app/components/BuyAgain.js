@@ -21,7 +21,7 @@ const BuyAgainCard = memo(({ item, onAdd }) => {
       </View>
 
       {/* Image */}
-      <FallbackImage source={{ uri: item.image }} style={styles.image} />
+      <FallbackImage source={{ uri: item.image }} style={styles.image} type="product" productName={item.name} entityId={item.id || item._id} />
 
       {/* Info */}
       <Text numberOfLines={2} style={styles.name}>{item.name}</Text>

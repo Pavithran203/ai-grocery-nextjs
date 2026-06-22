@@ -25,7 +25,7 @@ export default function CartItem({ item, onUpdate, onRemove }) {
         </View>
       )}
       <View style={styles.imageBox}>
-        <FallbackImage source={{ uri: item.image }} style={styles.image} resizeMode="contain" />
+        <FallbackImage source={{ uri: item.image }} style={styles.image} resizeMode="contain" type="product" productName={item.name} entityId={item.id || item._id} />
       </View>
       
       <View style={styles.details}>

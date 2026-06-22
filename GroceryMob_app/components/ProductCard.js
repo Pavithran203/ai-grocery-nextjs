@@ -50,7 +50,7 @@ function ProductCard({ product, navigation, campaignDiscount, isDeliverable = tr
         onPress={() => navigation.navigate('ProductDetail', { product, isDeliverable, isStoreOpen: storeOpen })}
         style={styles.imageContainer}
       >
-        <FallbackImage source={{ uri: product.image }} style={styles.image} resizeMode="contain" />
+        <FallbackImage source={{ uri: product.image }} style={styles.image} resizeMode="contain" type="product" productName={product.name} entityId={product.id || product._id} />
         {hasCampaign ? (
           <View style={[styles.badge, styles.campaignBadge]}>
             <Text style={[styles.badgeText, { color: '#fff' }]}>🔥 {campaignDiscount}% OFF</Text>

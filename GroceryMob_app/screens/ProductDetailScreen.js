@@ -53,7 +53,7 @@ export default function ProductDetailScreen({ route, navigation }) {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.imageSection}>
-          <FallbackImage source={{ uri: product.image }} style={styles.image} resizeMode="contain" />
+          <FallbackImage source={{ uri: product.image }} style={styles.image} resizeMode="contain" type="product" productName={product.name} entityId={product.id || product._id} />
           {hasMegaDeal ? (
             <View style={[styles.badge, { backgroundColor: '#DC2626' }]}>
               <Text style={styles.badgeText}>{t(megaDeal.dealConfig?.badge || '🔥 Mega Deal')}</Text>
