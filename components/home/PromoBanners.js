@@ -124,7 +124,7 @@ export default function PromoBanners() {
 
   return (
     <div className="relative group px-4 mt-6">
-      <div 
+      <div
         ref={scrollRef}
         className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-6 rounded-[40px]"
         onScroll={(e) => {
@@ -137,9 +137,10 @@ export default function PromoBanners() {
           const isPromo = item.type === 'promo';
 
           return (
-            <div 
+            <Link
               key={item.id}
-              className="min-w-full snap-center rounded-[32px] sm:rounded-[40px] p-6 sm:p-10 relative overflow-hidden flex flex-col justify-between min-h-[200px] sm:min-h-[240px] lg:min-h-[260px]"
+              href={getBannerHref(item)}
+              className="min-w-full snap-center rounded-[32px] sm:rounded-[40px] p-6 sm:p-10 relative overflow-hidden flex flex-col justify-between min-h-[200px] sm:min-h-[240px] lg:min-h-[260px] block"
               style={{ backgroundColor: colorStart }}
             >
               {/* Offer Tag */}
@@ -152,14 +153,14 @@ export default function PromoBanners() {
                   <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center text-4xl mb-4 border border-white/20 shadow-2xl">
                     {item.icon}
                   </div>
-                  
+
                   <h2 className="text-3xl lg:text-4xl font-black text-white mb-2 leading-tight tracking-tighter">
                     {getBannerTitle(item)}
                   </h2>
                   <p className="text-lg text-white/90 font-bold mb-6 max-w-[400px] leading-snug">
                     {item.subtitle}
                   </p>
-                  
+
                   {!isPromo && (
                     <div className="flex items-center gap-3 mb-6 bg-black/20 self-start px-4 py-2 rounded-2xl border border-white/10 backdrop-blur-sm">
                       <Timer size={16} className="text-emerald-400 animate-pulse" />
@@ -175,16 +176,15 @@ export default function PromoBanners() {
                         </span>
                       </div>
                     )}
-                    <Link 
-                      href={getBannerHref(item)}
-                      className="bg-white px-10 py-4 rounded-[24px] flex items-center gap-3 shadow-[0_15px_45px_rgba(0,0,0,0.2)] hover:scale-[1.05] active:scale-[0.98] transition-all group border-b-4 border-black/10"
+                    <span
+                      className="bg-white px-10 py-4 rounded-[24px] flex items-center gap-3 shadow-[0_15px_45px_rgba(0,0,0,0.2)] hover:scale-[1.05] active:scale-[0.98] transition-all group border-b-4 border-black/10 cursor-pointer"
                       style={{ color: colorStart }}
                     >
                       <span className="text-base font-black uppercase tracking-tight">
                         {getBannerCta(item)}
                       </span>
                       <ChevronRight size={20} strokeWidth={3} className="group-hover:translate-x-1.5 transition-transform" />
-                    </Link>
+                    </span>
                   </div>
                 </div>
 
@@ -198,7 +198,7 @@ export default function PromoBanners() {
               {/* Decorative elements */}
               <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-gradient-to-br from-white/10 to-transparent blur-3xl pointer-events-none" />
               <div className="absolute -left-20 -bottom-20 w-80 h-80 rounded-full bg-gradient-to-tr from-black/10 to-transparent blur-3xl pointer-events-none" />
-            </div>
+            </Link>
           );
         })}
       </div>
@@ -206,8 +206,8 @@ export default function PromoBanners() {
       {allSlides.length > 1 && (
         <div className="flex justify-center gap-3 mt-8">
           {allSlides.map((_, i) => (
-            <button 
-              key={i} 
+            <button
+              key={i}
               onClick={() => {
                 setCurrentSlide(i);
                 scrollRef.current.scrollTo({ left: i * scrollRef.current.offsetWidth, behavior: 'smooth' });
