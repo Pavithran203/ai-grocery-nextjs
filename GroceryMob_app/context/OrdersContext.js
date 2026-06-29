@@ -7,8 +7,8 @@ const OrdersContext = createContext();
 
 export const useOrders = () => useContext(OrdersContext);
 
-const ORDERS_PREFIX = '@freshkart_orders_';
-const GUEST_ORDERS_KEY = '@freshkart_guest_orders';
+const ORDERS_PREFIX = '@nearmart_orders_';
+const GUEST_ORDERS_KEY = '@nearmart_guest_orders';
 
 const STAGE_PACKED_MIN = 1;
 const STAGE_DELIVERY_MIN = 2;

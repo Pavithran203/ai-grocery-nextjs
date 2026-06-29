@@ -6,8 +6,8 @@ const LoyaltyContext = createContext();
 
 export const useLoyalty = () => useContext(LoyaltyContext);
 
-const LOYALTY_COINS_PREFIX = '@freshkart_coins_';
-const LOYALTY_HISTORY_PREFIX = '@freshkart_coins_history_';
+const LOYALTY_COINS_PREFIX = '@nearmart_coins_';
+const LOYALTY_HISTORY_PREFIX = '@nearmart_coins_history_';
 
 export const LoyaltyProvider = ({ children }) => {
   const { user } = useAuth();

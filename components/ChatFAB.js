@@ -60,7 +60,7 @@ export default function ChatFAB() {
     <div 
       className="fixed z-[100] flex flex-col items-end gap-4 transition-all duration-300 ease-in-out"
       style={{
-        bottom: '2rem',
+        bottom: '4.5rem',
         right: panelOpen ? 'calc(28rem + 1.5rem)' : '2rem',
       }}
     >

@@ -5,7 +5,6 @@ import { useQuery } from '@tanstack/react-query';
 import { AreaChart, Area, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Activity, BarChart3, Box, Package, ShoppingBag, Sparkles, User, Zap, ArrowRight, Clock, TrendingUp } from 'lucide-react';
 import { adminFetch } from '@/lib/admin/adminFetch';
-import { scanAllCustomerOrders, type CustomerOrder } from '@/lib/admin/customerOrderStore';
 import Link from 'next/link';
 
 const fetchMetrics = async () => {
@@ -35,68 +34,17 @@ export default function DashboardOverview() {
     staleTime: 1000 * 30
   });
 
-  // Load real customer orders from localStorage
-  const [customerOrders, setCustomerOrders] = useState<CustomerOrder[]>([]);
-  
-  useEffect(() => {
-    const loadCustomerOrders = () => {
-      const orders = scanAllCustomerOrders();
-      setCustomerOrders(orders);
-    };
-    loadCustomerOrders();
-    // Re-scan periodically to catch new orders
-    const interval = setInterval(loadCustomerOrders, 10000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Merge mock orders + real customer orders (deduplicated)
   const allOrders = useMemo(() => {
-    const mockOrders = mockOrdersData?.orders || [];
-    const seenIds = new Set<string>();
-    const merged: any[] = [];
+    return mockOrdersData?.orders || [];
+  }, [mockOrdersData]);
 
-    // Customer orders first (most recent)
-    customerOrders.forEach(o => {
-      const id = o.id || o._id || '';
-      if (id && !seenIds.has(id)) {
-        seenIds.add(id);
-        merged.push(o);
-      }
-    });
-
-    // Then mock orders
-    mockOrders.forEach((o: any) => {
-      const id = o.id || o._id || '';
-      if (id && !seenIds.has(id)) {
-        seenIds.add(id);
-        merged.push(o);
-      }
-    });
-
-    // Sort newest first
-    merged.sort((a, b) => {
-      const dateA = new Date(a.placedAt || a.createdAt || 0).getTime();
-      const dateB = new Date(b.placedAt || b.createdAt || 0).getTime();
-      return dateB - dateA;
-    });
-
-    return merged;
-  }, [mockOrdersData, customerOrders]);
-
-  // Compute live metrics from all orders
   const liveMetrics = useMemo(() => {
-    if (!metricsData?.metrics) return null;
-    const base = metricsData.metrics;
+    return metricsData?.metrics || null;
+  }, [metricsData]);
 
-    const customerOrderCount = customerOrders.length;
-    const customerRevenue = customerOrders.reduce((sum, o) => sum + (o.amount || 0), 0);
-
-    return {
-      ...base,
-      totalOrders: base.totalOrders + customerOrderCount,
-      revenueToday: base.revenueToday + customerRevenue,
-    };
-  }, [metricsData, customerOrders]);
+  const liveOrdersCount = useMemo(() => {
+    return allOrders.filter((o: any) => ['Pending', 'Packed', 'Out for Delivery'].includes(o.status)).length;
+  }, [allOrders]);
 
   const recentOrders = allOrders.slice(0, 8);
 
@@ -143,10 +91,10 @@ export default function DashboardOverview() {
             <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">Real-time performance indicators from orders, inventory, delivery, and user activity with enterprise-grade visibility.</p>
           </div>
           <div className="flex items-center gap-3">
-            {customerOrders.length > 0 && (
+            {liveOrdersCount > 0 && (
               <div className="inline-flex items-center gap-2 rounded-3xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-black uppercase tracking-[0.25em] text-emerald-700 shadow-sm">
                 <TrendingUp className="h-4 w-4" />
-                {customerOrders.length} Live orders
+                {liveOrdersCount} Live orders
               </div>
             )}
             <div className="inline-flex items-center gap-3 rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-black uppercase tracking-[0.25em] text-slate-700 shadow-sm">AI Forecasting Live</div>

@@ -43,9 +43,9 @@ export default function ProfileOverview() {
   }, []);
 
   const stats = [
-    { label: t('profile.totalOrders'), value: orders?.length?.toString() || '0', icon: ShoppingBag, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-950/20' },
-    { label: t('profile.savedAddresses'), value: (addresses?.length || 0).toString(), icon: MapPin, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/20' },
-    { label: t('profile.savedCards'), value: savedCardsCount.toString(), icon: CreditCard, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950/20' },
+    { label: t('profile.totalOrders'), value: orders?.length?.toString() || '0', icon: ShoppingBag, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-950/20', href: '/orders' },
+    { label: t('profile.savedAddresses'), value: (addresses?.length || 0).toString(), icon: MapPin, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/20', href: '/profile/addresses' },
+    { label: t('profile.savedCards'), value: savedCardsCount.toString(), icon: CreditCard, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950/20', href: '/profile/payments' },
   ];
 
   const formatOrderDate = (dateStr) => {
@@ -74,7 +74,7 @@ export default function ProfileOverview() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {stats.map((stat, i) => (
-          <div key={i} className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-6 flex items-center gap-4 group hover:border-emerald-200 transition-all cursor-default shadow-sm">
+          <Link href={stat.href} key={i} className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-6 flex items-center gap-4 group hover:border-emerald-200 transition-all cursor-pointer shadow-sm">
             <div className={`w-12 h-12 rounded-2xl ${stat.bg} flex items-center justify-center ${stat.color} group-hover:scale-110 transition-transform`}>
               <stat.icon className="w-6 h-6" />
             </div>
@@ -82,7 +82,7 @@ export default function ProfileOverview() {
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{stat.label}</p>
               <p className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter leading-none mt-0.5">{stat.value}</p>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 
@@ -91,7 +91,7 @@ export default function ProfileOverview() {
         <div className="bg-white dark:bg-gray-900 rounded-[32px] border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
             <h2 className="font-black text-gray-900 dark:text-white uppercase text-sm tracking-widest">{t('profile.recentActivity')}</h2>
-            <Link href="/orders" className="text-[10px] font-black text-emerald-600 hover:underline uppercase tracking-widest">{t('common.viewAll')}</Link>
+            <Link href="/orders" className="text-[10px] font-black text-emerald-600 hover:underline uppercase tracking-widest">{t('profile.viewAll', { defaultValue: 'View All' })}</Link>
           </div>
           <div className="divide-y divide-gray-50 dark:divide-gray-800">
             {orders && orders.length > 0 ? orders.slice(0, 3).map((order, i) => (
@@ -109,7 +109,7 @@ export default function ProfileOverview() {
               </Link>
             )) : (
               <div className="p-8 text-center">
-                <p className="text-sm font-bold text-gray-400">No recent activity.</p>
+                <p className="text-sm font-bold text-gray-400">{t('profile.noActivity', { defaultValue: 'No recent activity.' })}</p>
               </div>
             )}
           </div>
@@ -148,8 +148,8 @@ export default function ProfileOverview() {
               🏆
             </div>
             <div className="flex-1 text-center md:text-left">
-              <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight mb-1">Loyalty Program Tier {currentTier}</h2>
-              <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest mb-4">{coinsForNextTier} coins away from Tier {currentTier + 1}</p>
+              <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight mb-1">{t('profile.loyaltyProgramTier', { tier: currentTier })}</h2>
+              <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest mb-4">{t('profile.coinsAway', { coins: coinsForNextTier, nextTier: currentTier + 1 })}</p>
               <div className="w-full h-2.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full shadow-[0_0_12px_rgba(16,185,129,0.4)] transition-all duration-1000" 

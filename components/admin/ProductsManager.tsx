@@ -4,11 +4,17 @@ import { useMemo, useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Download, Filter, Plus, Search, Sparkles, Upload } from 'lucide-react';
 import { adminFetch } from '@/lib/admin/adminFetch';
+import { api } from '@/services/api';
 
 const fetchProducts = async () => {
-  const res = await adminFetch('/api/admin/products');
-  if (!res.ok) throw new Error('Failed to load products');
-  return res.json();
+  try {
+    const res = await adminFetch('/api/products?admin=true');
+    if (!res.ok) throw new Error('Failed to load products');
+    return await res.json();
+  } catch (e) {
+    console.warn('Failed to load products from API, using fallback:', e);
+    return { success: true, products: [], categories: [] };
+  }
 };
 
 const parseResponse = async (res) => {
@@ -20,7 +26,7 @@ const parseResponse = async (res) => {
 };
 
 const createProduct = async (product) => {
-  const res = await adminFetch('/api/admin/products', {
+  const res = await adminFetch('/api/products', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(product),
@@ -30,16 +36,25 @@ const createProduct = async (product) => {
 
 const updateProduct = async (product) => {
   const encodedId = encodeURIComponent(String(product.id));
-  const res = await adminFetch(`/api/admin/products/${encodedId}`, {
-    method: 'PATCH',
+  const res = await adminFetch(`/api/products/${encodedId}`, {
+    method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(product),
   });
   return parseResponse(res);
 };
 
-function formatCurrency(value: number) {
-  return `₹${value.toFixed(0)}`;
+const deleteProduct = async (id: string) => {
+  const encodedId = encodeURIComponent(String(id));
+  const res = await adminFetch(`/api/products/${encodedId}`, {
+    method: 'DELETE',
+  });
+  return parseResponse(res);
+};
+
+function formatCurrency(value: number | string | undefined | null) {
+  const num = Number(value);
+  return isNaN(num) ? '₹0' : `₹${num.toFixed(0)}`;
 }
 
 const emptyProduct = {
@@ -86,10 +101,52 @@ export default function ProductsManager() {
     onError: (error: any) => setFormError(error.message || 'Failed to save product'),
   });
 
-  useEffect(() => {
-    if (data?.products) {
-      setProducts(data.products);
+  const saveLocalProductFallback = (product: any) => {
+    let customProducts: any[] = [];
+    try {
+      customProducts = JSON.parse(localStorage.getItem('nearmart_admin_products') || '[]');
+    } catch (e) {}
+
+    const index = customProducts.findIndex((p: any) => String(p.id) === String(product.id));
+    if (index !== -1) {
+      if (product.deleted) {
+        customProducts.splice(index, 1);
+      } else {
+        customProducts[index] = { ...customProducts[index], ...product };
+      }
+    } else if (!product.deleted) {
+      customProducts.push(product);
     }
+
+    localStorage.setItem('nearmart_admin_products', JSON.stringify(customProducts));
+  };
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      let backendProducts = data?.products || [];
+      
+      let customProducts: any[] = [];
+      if (typeof window !== 'undefined') {
+        try {
+          customProducts = JSON.parse(localStorage.getItem('nearmart_admin_products') || '[]');
+        } catch (e) {}
+      }
+
+      if (backendProducts.length === 0) {
+        try {
+          const allProducts = await api.getProducts();
+          setProducts(allProducts);
+          return;
+        } catch (e) {
+          console.error('Failed to load local products:', e);
+        }
+      }
+
+      const mergedMap = new Map(backendProducts.map(p => [p.id, p]));
+      customProducts.forEach(p => mergedMap.set(p.id, p));
+      setProducts(Array.from(mergedMap.values()));
+    };
+    loadProducts();
   }, [data]);
 
   const filteredProducts = useMemo(() => {
@@ -111,8 +168,9 @@ export default function ProductsManager() {
 
     try {
       await updateProduct(updated);
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      console.warn('Backend offline. Saving toggle change locally:', e);
+      saveLocalProductFallback(updated);
     }
     queryClient.invalidateQueries({ queryKey: ['adminProducts'] });
   };
@@ -121,15 +179,16 @@ export default function ProductsManager() {
     if (!window.confirm("Are you sure you want to permanently delete this product?")) return;
     const product = products.find((item) => item.id === id);
     if (!product) return;
-    const updated = { ...product, deleted: true, available: false };
     
     // Optimistic UI update
     setProducts((current) => current.filter((p) => p.id !== id));
 
     try {
-      await updateProduct(updated);
-    } catch (e) {
-      console.error(e);
+      await deleteProduct(id);
+    } catch (e: any) {
+      console.warn('Backend offline. Saving deletion locally:', e);
+      const updated = { ...product, deleted: true, available: false };
+      saveLocalProductFallback(updated);
     }
     queryClient.invalidateQueries({ queryKey: ['adminProducts'] });
   };
@@ -181,11 +240,11 @@ export default function ProductsManager() {
       return;
     }
 
-const variantList = typeof formState.variants === 'string'
+    const variantList = typeof formState.variants === 'string'
         ? formState.variants.split(',').map((value) => value.trim()).filter(Boolean)
         : formState.variants;
 
-      const payload = {
+    const payload = {
         ...formState,
         variants: variantList,
         unit: variantList?.[0] || formState.unit || 'Single',
@@ -197,8 +256,40 @@ const variantList = typeof formState.variants === 'string'
       } else {
         await createMutation.mutateAsync(payload);
       }
-    } catch (error) {
-      // handled in mutation onError
+    } catch (error: any) {
+      const isBackendError = 
+        error.message === 'Failed to reach backend' || 
+        error.message.includes('fetch') || 
+        error.message.includes('backend') || 
+        error.message.includes('unreachable') ||
+        error.message.includes('unauthorized');
+
+      if (isBackendError) {
+        console.warn('Backend is offline. Saving product locally.');
+        const newId = editingProduct ? editingProduct.id : 'local_' + Date.now();
+        const localProduct = {
+          ...payload,
+          id: newId,
+          price: Number(payload.price),
+          stock: Number(payload.stock),
+          available: payload.available !== false,
+        };
+
+        saveLocalProductFallback(localProduct);
+
+        // Optimistically update products list in state
+        setProducts((current) => {
+          if (editingProduct) {
+            return current.map((p) => p.id === editingProduct.id ? localProduct : p);
+          } else {
+            return [...current, localProduct];
+          }
+        });
+
+        closeModal();
+      } else {
+        setFormError(error.message || 'Failed to save product');
+      }
     } finally {
       setSaving(false);
     }
@@ -299,7 +390,7 @@ const variantList = typeof formState.variants === 'string'
                     <td className="px-4 py-4 text-slate-600">{product.category}</td>
                     <td className="px-4 py-4 text-slate-600">{Array.isArray(product.variants) ? product.variants.join(', ') : product.unit || 'Single'}</td>
                     <td className="px-4 py-4 font-black text-slate-900">{formatCurrency(product.price)}</td>
-                    <td className="px-4 py-4 text-slate-600">{product.stock}</td>
+                    <td className="px-4 py-4 text-slate-600">{Number(product.stock) || 0}</td>
                     <td className="px-4 py-4">
                       <span className={`inline-flex rounded-full px-3 py-2 text-[11px] font-black uppercase tracking-[0.2em] ${product.available ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
                         {product.available ? 'Live' : 'Draft'}

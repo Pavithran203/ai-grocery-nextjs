@@ -6,8 +6,8 @@ const FavoriteContext = createContext();
 
 export const useFavorites = () => useContext(FavoriteContext);
 
-const FAVORITES_PREFIX = '@freshkart_favorites_';
-const PREFERRED_STORE_PREFIX = '@freshkart_preferred_store_';
+const FAVORITES_PREFIX = '@nearmart_favorites_';
+const PREFERRED_STORE_PREFIX = '@nearmart_preferred_store_';
 
 export const FavoriteProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([]);

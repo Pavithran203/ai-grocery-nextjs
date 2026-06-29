@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, ChevronDown, MapPin, Star, Clock, Truck, Search, X, Phone, Navigation, Heart, ShoppingBag } from 'lucide-react-native';
@@ -11,6 +11,7 @@ import ProductCard from '../components/ProductCard';
 import SearchBar from '../components/SearchBar';
 import { useCart } from '../context/CartContext';
 import { generateStoreOffers } from '../data/campaigns';
+import { api } from '../services/api';
 
 export default function StoreDetailScreen({ route, navigation }) {
   const { store } = route.params;
@@ -71,7 +72,28 @@ export default function StoreDetailScreen({ route, navigation }) {
   }, [storeData]);
 
   const isFav = isFavorite(storeData.id);
-  const allProducts = useMemo(() => storeService.getStoreProducts(storeData), [storeData.id]);
+  const [syncTrigger, setSyncTrigger] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    const fetchProducts = async () => {
+      try {
+        const allProd = await api.getProducts();
+        if (active) {
+          storeService.syncWithBackend(allProd);
+          setSyncTrigger(prev => prev + 1);
+        }
+      } catch (error) {
+        console.error('Failed to sync backend products in StoreDetailScreen:', error);
+      }
+    };
+    fetchProducts();
+    return () => {
+      active = false;
+    };
+  }, [storeData.id]);
+
+  const allProducts = useMemo(() => storeService.getStoreProducts(storeData), [storeData.id, syncTrigger]);
 
   const displayProducts = useMemo(() => {
     let filtered = selectedCategory

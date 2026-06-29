@@ -3,7 +3,7 @@ import {
   smartSuggestionsMap, bundleSuggestions, megaDeals, newArrivals,
   orders as mockOrders
 } from './mockData';
-import { getSafeProductImage } from './imageUtils';
+import { getSafeProductImage, VERIFIED_PRODUCTS } from './imageUtils';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000/api';
 
@@ -37,7 +37,7 @@ const fetchWithAuth = async (endpoint, options = {}) => {
     const res = await fetch(`${API_URL}${endpoint}`, {
       ...options,
       headers,
-      signal: AbortSignal.timeout(8000), // 8s timeout to prevent infinite loading
+      signal: AbortSignal.timeout(2000), // 2s timeout to prevent infinite loading
     });
 
     if (!res.ok) {
@@ -48,7 +48,22 @@ const fetchWithAuth = async (endpoint, options = {}) => {
     return await res.json();
   } catch (err) {
     if (err.name === 'TimeoutError') {
-      throw new Error('Server connection timed out. Please check if the backend is running properly.');
+      const timeoutErr = new Error('Server connection timed out. Please check if the backend is running properly.');
+      timeoutErr.isOffline = true;
+      throw timeoutErr;
+    }
+    // Detect typical fetch/network errors when server is offline
+    if (
+      err.name === 'TypeError' && 
+      (err.message.includes('fetch') || 
+       err.message.includes('Failed to fetch') || 
+       err.message.includes('fetch failed') || 
+       err.message.includes('NetworkError') ||
+       err.message.includes('network'))
+    ) {
+      const offlineErr = new Error('Backend server is offline or unreachable.');
+      offlineErr.isOffline = true;
+      throw offlineErr;
     }
     throw err;
   }
@@ -59,7 +74,7 @@ const tryBackend = async (endpoint, fallback) => {
   try {
     const res = await fetch(`${API_URL}${endpoint}`, {
       cache: 'no-store',
-      signal: AbortSignal.timeout(300), // Reduced timeout to 300ms for instant fallback
+      signal: AbortSignal.timeout(3000), // Increased timeout to 3000ms to ensure reliable backend connection
     });
     if (!res.ok) throw new Error('Backend error');
     const data = await res.json();
@@ -240,6 +255,10 @@ export const api = {
     const data = await fetchWithAuth(`/auth/me/addresses/${addressId}`, { method: 'DELETE' });
     return data.addresses;
   },
+  getDeliveryStaff: async () => {
+    const data = await fetchWithAuth('/auth/delivery-staff');
+    return data.staff || [];
+  },
 
   getCategories: async () => {
     const data = await tryBackend('/categories');
@@ -256,7 +275,7 @@ export const api = {
   },
 
   // ── Products ──
-  getProducts: async (cat = null) => {
+  getProducts: async (cat = null, storeId = null) => {
     let customProducts = [];
     if (typeof window !== 'undefined') {
       try {
@@ -269,7 +288,12 @@ export const api = {
     customProducts.forEach(p => mergedMap.set(p.id, p));
     const allProducts = Array.from(mergedMap.values());
 
-    const query = cat ? `?category=${encodeURIComponent(cat)}&limit=1000` : '?limit=1000';
+    const queryParams = [];
+    if (cat) queryParams.push(`category=${encodeURIComponent(cat)}`);
+    if (storeId) queryParams.push(`store=${encodeURIComponent(storeId)}`);
+    queryParams.push('limit=1000');
+    const query = '?' + queryParams.join('&');
+
     const data = await tryBackend(`/products${query}`);
     
     if (data && data.products && data.products.length > 0) {
@@ -278,10 +302,19 @@ export const api = {
         const localOverride = getLocalProductOverride(product) || customProducts.find(cp => cp.id === mappedProduct.id);
         return localOverride ? { ...mappedProduct, ...localOverride, id: mappedProduct.id } : mappedProduct;
       });
-      return cat ? mapped.filter(product => matchesCategory(product, cat)) : mapped;
+      
+      let filtered = mapped;
+      if (cat) {
+        filtered = filtered.filter(product => matchesCategory(product, cat));
+      }
+      return filtered;
     }
     
-    return cat ? allProducts.filter(product => matchesCategory(product, cat)) : allProducts;
+    let filteredLocal = allProducts;
+    if (cat) {
+      filteredLocal = filteredLocal.filter(product => matchesCategory(product, cat));
+    }
+    return filteredLocal;
   },
 
   getProductById: async (id) => {
@@ -372,6 +405,9 @@ export const api = {
       const data = await fetchWithAuth('/cart');
       return data.cart || { items: [], totalPrice: 0 };
     } catch (e) {
+      if (e.isOffline) {
+        throw e;
+      }
       return { items: [], totalPrice: 0 };
     }
   },
@@ -406,6 +442,14 @@ export const api = {
   // --- Orders ---
   createOrder: async (orderData) => {
     const data = await fetchWithAuth('/orders', { method: 'POST', body: JSON.stringify(orderData) });
+    return data.order;
+  },
+  cancelOrder: async (orderId) => {
+    const data = await fetchWithAuth(`/orders/${orderId}/cancel`, { method: 'PUT' });
+    return data.order;
+  },
+  updateOrderStatus: async (orderId, orderStatus) => {
+    const data = await fetchWithAuth(`/orders/${orderId}/status`, { method: 'PUT', body: JSON.stringify({ orderStatus }) });
     return data.order;
   },
   getMyOrders: async () => {
@@ -450,7 +494,10 @@ function mapBackendProduct(p) {
     ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100)
     : 0;
 
-  const safeImageUrl = getSafeProductImage(
+  const verified = VERIFIED_PRODUCTS[p._id || p.id] || VERIFIED_PRODUCTS[mockProduct.id] || null;
+  const isImageVerified = !!verified;
+
+  const safeImageUrl = verified ? verified.imageUrl : getSafeProductImage(
     {
       ...mockProduct,
       id: p._id || p.id,
@@ -458,6 +505,24 @@ function mapBackendProduct(p) {
     },
     p.image_url || p.image || mockProduct.image_url
   );
+
+  let brand = p.brand || mockProduct.brand || 'NearMart Organic';
+  if (verified) {
+    brand = verified.brand;
+  } else if (p.name?.toLowerCase().includes('aashirvaad')) {
+    brand = 'Aashirvaad';
+  } else if (p.name?.toLowerCase().includes('mtr')) {
+    brand = 'MTR';
+  } else if (p.name?.toLowerCase().includes('saptham')) {
+    brand = 'Saptham';
+  } else if (p.name?.toLowerCase().includes('india gate')) {
+    brand = 'India Gate';
+  }
+
+  const category = verified ? verified.category : (p.category || mockProduct.category);
+  const unit = p.unit || mockProduct.unit || '1 kg';
+  const altText = verified ? verified.imageAltText : `${p.name}, ${unit}`;
+  const storeData = p.store || mockProduct.store || null;
 
   return {
     id: p._id || p.id,
@@ -469,15 +534,27 @@ function mapBackendProduct(p) {
     name_hi: p.name_hi || mockProduct.name_hi,
     price: p.price,
     originalPrice: p.originalPrice,
-    rating: p.rating || 0,
-    reviews: p.reviewCount || 0,
-    category: p.category,
-    unit: p.unit || mockProduct.unit || '1 kg',
+    rating: p.rating || mockProduct.rating || 0,
+    reviews: p.reviewCount || mockProduct.reviews || 0,
+    category,
+    unit,
     image_url: safeImageUrl,
     tag: (p.tags && p.tags.find(t => ['Traditional', 'Pure', 'Premium', 'Recommended', 'Trending'].includes(t))) ||
-      (p.isTrending ? 'Trending' : p.isRecommended ? 'Recommended' : (p.tags && p.tags[0]) || ''),
+      (p.isTrending ? 'Trending' : p.isRecommended ? 'Recommended' : (p.tags && p.tags[0]) || mockProduct.tag || ''),
     discount,
     stock: p.stock,
     isAvailable: p.isAvailable !== false,
+    store: storeData,
+
+    // structured product record fields
+    productId: p._id || p.id,
+    productName: p.name,
+    brand,
+    weightOrUnit: unit,
+    imageUrl: safeImageUrl,
+    imageAltText: altText,
+    storeId: p.storeId || storeData?.id || storeData?._id || mockProduct.storeId || null,
+    storeName: p.storeName || storeData?.name || mockProduct.storeName || null,
+    isImageVerified
   };
 }

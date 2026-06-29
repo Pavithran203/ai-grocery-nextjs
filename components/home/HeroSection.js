@@ -67,7 +67,7 @@ export default function HeroSection() {
           <div className="hero-img-ring">
             <div className="hero-img-inner">
               <SafeImage
-                src="https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_800,h_800,q_auto,f_auto/samples/food/fish-vegetables.jpg"
+                src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80"
                 alt={t('home.heroImageAlt', 'Fresh vegetables and groceries')}
                 type="banner"
                 componentName="HeroSection"

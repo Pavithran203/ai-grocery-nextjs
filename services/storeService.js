@@ -1,5 +1,10 @@
 import { DEMO_STORES } from '@/data/demoStores';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000/api';
+
+// In-memory cache of active stores (initialized with demo stores)
+let currentStores = [...DEMO_STORES];
+
 function getDistanceKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -50,7 +55,7 @@ function calculateDeliveryInfo(store, distance, orderAmount = 0) {
     };
   }
 
-  const maxRadius = store.deliveryRadiusKm || 30; // 30km limit as per requirement 5
+  const maxRadius = store.deliveryRadiusKm || 30; // 30km limit
   const freeThreshold = store.freeDeliveryThreshold || 500;
   
   const isWithinFreeDistance = distance <= 5;
@@ -94,11 +99,48 @@ function calculateDeliveryInfo(store, distance, orderAmount = 0) {
   };
 }
 
+function mapBackendStore(s) {
+  return {
+    ...s,
+    id: s._id || s.id,
+    latitude: s.location?.coordinates?.[1] || s.latitude,
+    longitude: s.location?.coordinates?.[0] || s.longitude,
+  };
+}
+
 export const storeService = {
+  // Sync memory cache with DB
+  async syncWithBackend(userLat = null, userLon = null) {
+    try {
+      let query = '';
+      if (userLat != null && userLon != null) {
+        query = `?lat=${userLat}&lng=${userLon}&limit=100`;
+      } else {
+        query = '?limit=100';
+      }
+
+      const res = await fetch(`${API_URL}/stores${query}`, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(1500) // 1.5s timeout
+      });
+
+      if (!res.ok) throw new Error('Failed to fetch stores from backend');
+      const data = await res.json();
+      
+      if (data && data.success && data.stores) {
+        currentStores = data.stores.map(mapBackendStore);
+        return currentStores;
+      }
+    } catch (e) {
+      console.warn('⚠️ storeService backend sync failed, using mock stores fallback:', e.message);
+    }
+    return currentStores;
+  },
+
   getNearbyStores(userLat, userLon, radiusKm = 100, favoriteStoreIds = []) {
     if (userLat == null || userLon == null) return [];
 
-    const allStoresWithDistance = DEMO_STORES.map(store => {
+    const allStoresWithDistance = currentStores.map(store => {
       const distance = parseFloat(getDistanceKm(userLat, userLon, store.latitude, store.longitude).toFixed(1));
       const status = getStoreStatus(store);
       const isFav = favoriteStoreIds.includes(store.id);
@@ -136,7 +178,7 @@ export const storeService = {
   },
 
   getStoreById(storeId, userLat = null, userLon = null, orderAmount = 0) {
-    const store = DEMO_STORES.find(s => s.id === storeId);
+    const store = currentStores.find(s => s.id === storeId);
     if (!store) return null;
     
     let distance = null;
@@ -180,8 +222,9 @@ export const storeService = {
       });
     });
   },
+
   getAllStores(userLat = null, userLon = null) {
-    return DEMO_STORES.map(store => {
+    return currentStores.map(store => {
       let distance = null;
       if (userLat != null && userLon != null) {
         distance = parseFloat(getDistanceKm(userLat, userLon, store.latitude, store.longitude).toFixed(1));
@@ -212,3 +255,4 @@ export const storeService = {
     );
   }
 };
+

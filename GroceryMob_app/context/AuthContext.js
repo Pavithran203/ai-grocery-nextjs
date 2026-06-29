@@ -26,11 +26,11 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const loadSession = async () => {
       try {
-        const savedUser = await AsyncStorage.getItem('groceryDemoUser');
+        const savedUser = await AsyncStorage.getItem('nearmart_user');
         if (savedUser) {
           const parsedUser = JSON.parse(savedUser);
           // Set demo token for backend compatibility
-          await AsyncStorage.setItem('groceryAppToken', 'demo-token-' + parsedUser.uid);
+          await AsyncStorage.setItem('nearmart_token', 'demo-token-' + parsedUser.uid);
           setUser(parsedUser);
         }
       } catch (e) {
@@ -45,13 +45,13 @@ export const AuthProvider = ({ children }) => {
   const clearAllLocalData = async () => {
     try {
       const keysToClear = [
-        'groceryAppGuestCart',
-        'groceryAppAddresses',
-        'groceryAppGuestWishlist',
-        'groceryAppGuestFavorites',
-        'groceryAppLocalOrders',
-        '@freshkart_guest_orders',
-        'groceryAppCoupon',
+        'nearmart_guest_cart',
+        '@nearmart_addresses',
+        'nearmart_guest_wishlist',
+        'nearmart_guest_favorites',
+        'nearmart_local_orders',
+        '@nearmart_guest_orders',
+        'nearmart_coupon',
         'searchPreferences'
       ];
       
@@ -63,12 +63,12 @@ export const AuthProvider = ({ children }) => {
       // Find and clear all user-specific keys
       const allKeys = await AsyncStorage.getAllKeys();
       const prefixesToClear = [
-        '@freshkart_orders_',
-        '@freshkart_wishlist_',
-        '@freshkart_coins_',
-        '@freshkart_coins_history_',
-        '@freshkart_favorites_',
-        '@freshkart_preferred_store_'
+        '@nearmart_orders_',
+        '@nearmart_wishlist_',
+        '@nearmart_coins_',
+        '@nearmart_coins_history_',
+        '@nearmart_favorites_',
+        '@nearmart_preferred_store_'
       ];
       const userKeys = allKeys.filter(k => prefixesToClear.some(pref => k.startsWith(pref)));
       for (const key of userKeys) {
@@ -88,8 +88,8 @@ export const AuthProvider = ({ children }) => {
         
         const userData = { ...DEMO_USER };
         const token = 'demo-token-' + userData.uid;
-        await AsyncStorage.setItem('groceryDemoUser', JSON.stringify(userData));
-        await AsyncStorage.setItem('groceryAppToken', token);
+        await AsyncStorage.setItem('nearmart_user', JSON.stringify(userData));
+        await AsyncStorage.setItem('nearmart_token', token);
         api.setAuthToken(token);
         setUser(userData);
         return { success: true };
@@ -116,8 +116,8 @@ export const AuthProvider = ({ children }) => {
         addresses: []
       };
       const token = 'demo-token-' + newUser.uid;
-      await AsyncStorage.setItem('groceryDemoUser', JSON.stringify(newUser));
-      await AsyncStorage.setItem('groceryAppToken', token);
+      await AsyncStorage.setItem('nearmart_user', JSON.stringify(newUser));
+      await AsyncStorage.setItem('nearmart_token', token);
       api.setAuthToken(token);
       setUser(newUser);
       return { success: true };
@@ -129,8 +129,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    await AsyncStorage.removeItem('groceryDemoUser');
-    await AsyncStorage.removeItem('groceryAppToken');
+    await AsyncStorage.removeItem('nearmart_user');
+    await AsyncStorage.removeItem('nearmart_token');
     api.setAuthToken(null);
     setUser(null);
     return { success: true };
@@ -152,8 +152,8 @@ export const AuthProvider = ({ children }) => {
       isGuest: true
     };
     const token = 'demo-token-' + guestUser.uid;
-    await AsyncStorage.setItem('groceryDemoUser', JSON.stringify(guestUser));
-    await AsyncStorage.setItem('groceryAppToken', token);
+    await AsyncStorage.setItem('nearmart_user', JSON.stringify(guestUser));
+    await AsyncStorage.setItem('nearmart_token', token);
     api.setAuthToken(token);
     setUser(guestUser);
     console.log('✅ Guest User state updated locally');
@@ -168,8 +168,8 @@ export const AuthProvider = ({ children }) => {
   const verifyOTP = async (phone, otp) => {
     if (otp === FIXED_OTP) {
       const userData = { ...DEMO_USER, phone };
-      await AsyncStorage.setItem('groceryDemoUser', JSON.stringify(userData));
-      await AsyncStorage.setItem('groceryAppToken', 'demo-token-' + userData.uid);
+      await AsyncStorage.setItem('nearmart_user', JSON.stringify(userData));
+      await AsyncStorage.setItem('nearmart_token', 'demo-token-' + userData.uid);
       setUser(userData);
       return { success: true };
     } else {
@@ -179,7 +179,7 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (data) => {
     const updatedUser = { ...user, ...data };
-    await AsyncStorage.setItem('groceryDemoUser', JSON.stringify(updatedUser));
+    await AsyncStorage.setItem('nearmart_user', JSON.stringify(updatedUser));
     setUser(updatedUser);
     return { success: true };
   };

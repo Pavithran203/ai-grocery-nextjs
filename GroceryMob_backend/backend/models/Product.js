@@ -22,6 +22,8 @@ const productSchema = new mongoose.Schema(
     tags:          [{ type: String }],
     // IDs of products that pair well with this one (AI smart suggestions)
     suggestedWith: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
+    // Reference to the store selling this product
+    store: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true },
   },
   { timestamps: true }
 );
@@ -32,5 +34,7 @@ productSchema.index({ category: 1 });
 productSchema.index({ isTrending: 1 });
 productSchema.index({ isRecommended: 1 });
 productSchema.index({ stockStatus: 1 });
+productSchema.index({ store: 1 });
 
 module.exports = mongoose.model('Product', productSchema);
+

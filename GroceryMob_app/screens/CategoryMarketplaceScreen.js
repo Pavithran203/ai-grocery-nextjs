@@ -29,6 +29,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useLocation } from '../context/LocationContext';
 import { useCart } from '../context/CartContext';
 import { storeService } from '../services/storeService';
+import { api } from '../services/api';
 
 const FilterChip = ({ id, label, icon: Icon, activeFilters, toggleFilter, t }) => {
   const isActive = activeFilters.includes(id);
@@ -55,6 +56,7 @@ export default function CategoryMarketplaceScreen({ route, navigation }) {
   const [activeFilters, setActiveFilters] = useState([]);
   const [sortBy, setSortBy] = useState('best_match'); // 'best_match', 'price_low', 'price_high', 'rating', 'nearest', 'fastest'
   const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const [syncTrigger, setSyncTrigger] = useState(0);
 
   // 1. Fetch all products from all stores in this category
   const allProducts = useMemo(() => {
@@ -77,13 +79,28 @@ export default function CategoryMarketplaceScreen({ route, navigation }) {
     });
     
     return combinedProducts;
-  }, [category, coords?.latitude, coords?.longitude]);
+  }, [category, coords?.latitude, coords?.longitude, syncTrigger]);
 
   useEffect(() => {
-    // Simulate loading for better UX
-    setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(timer);
+    let active = true;
+    const fetchAndSync = async () => {
+      try {
+        setLoading(true);
+        const allProd = await api.getProducts();
+        if (active) {
+          storeService.syncWithBackend(allProd);
+          setSyncTrigger(prev => prev + 1);
+        }
+      } catch (error) {
+        console.error('Failed to sync backend products in CategoryMarketplaceScreen:', error);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    fetchAndSync();
+    return () => {
+      active = false;
+    };
   }, [category]);
 
   // 2. Filter Logic

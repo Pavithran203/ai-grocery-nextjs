@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss" source(none);
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* @import "./theme-vars.css"; */ /* DISABLED: was overriding standard Tailwind theme */
 @import "./mobile-spacings.css"; /* GENERATED: mobile spacing vars from GroceryMob_app/services/theme.js */
@@ -99,25 +100,23 @@
   --shadow-lg: 0 20px 48px rgba(22, 163, 74, 0.35);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Dark Mode - UNIFIED */
-    --bg:      #030712;
-    --surface: #111827;
-    --fg:      #f9fafb;
-    --muted:   #9ca3af;
-    --border:  #1f2937;
-    
-    /* Dark mode semantic colors adjustments */
-    --gray-50:  #111827;
-    --gray-100: #1F2937;
-    --gray-200: #374151;
-    --gray-300: #4B5563;
-    --gray-400: #6B7280;
-    --gray-500: #9CA3AF;
-    --gray-800: #E5E7EB;
-    --gray-900: #F3F4F6;
-  }
+:root.dark {
+  /* Dark Mode - UNIFIED */
+  --bg:      #030712;
+  --surface: #111827;
+  --fg:      #f9fafb;
+  --muted:   #9ca3af;
+  --border:  #1f2937;
+  
+  /* Dark mode semantic colors adjustments */
+  --gray-50:  #111827;
+  --gray-100: #1F2937;
+  --gray-200: #374151;
+  --gray-300: #4B5563;
+  --gray-400: #6B7280;
+  --gray-500: #9CA3AF;
+  --gray-800: #E5E7EB;
+  --gray-900: #F3F4F6;
 }
 
 @theme inline {

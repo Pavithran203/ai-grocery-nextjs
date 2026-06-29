@@ -39,15 +39,18 @@ export default function StoreDetailPage() {
   useEffect(() => {
     async function fetchData() {
       const coords = userCoords || { latitude: 13.0827, longitude: 80.2707 };
+      // Sync store details first to populate the cache with DB stores
+      await storeService.syncWithBackend(coords.latitude, coords.longitude);
       const storeData = storeService.getStoreById(storeId, coords.latitude, coords.longitude);
       setStore(storeData);
       
-      const allProducts = await api.getProducts();
-      setProducts(allProducts);
+      // Fetch only the products belonging to this specific store
+      const storeProducts = await api.getProducts(null, storeId);
+      setProducts(storeProducts);
       setLoading(false);
     }
     if (storeId) fetchData();
-  }, [storeId, getShopProducts]);
+  }, [storeId, userCoords, getShopProducts]);
 
   if (loading) return <div className="p-20 text-center font-black">Loading Store...</div>;
   if (!store) return <div className="p-20 text-center font-black text-red-500">Store Not Found</div>;

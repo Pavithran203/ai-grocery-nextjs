@@ -5,7 +5,26 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 
 dotenv.config();
-connectDB();
+connectDB().then(() => {
+  // Seed default delivery agent
+  const User = require('./models/User');
+  User.findOne({ email: 'delivery@nearmart.com' }).then(existing => {
+    if (!existing) {
+      User.create({
+        name: 'Ravi Kumar (E2EE)',
+        email: 'delivery@nearmart.com',
+        phone: '+91 98765 43210',
+        firebaseUid: 'web_delivery_ravi',
+        role: 'delivery',
+        isActive: true,
+      }).then(() => {
+        console.log('✓ Seeded default E2EE delivery agent: delivery@nearmart.com');
+      });
+    }
+  }).catch(err => {
+    console.error('Failed to seed E2EE delivery agent:', err);
+  });
+});
 
 const app = express();
 
@@ -44,10 +63,40 @@ app.use('/api/offers',     require('./routes/offers'));
 app.use('/api/customers',  require('./routes/customers'));
 app.use('/api/deliveries', require('./routes/deliveries'));
 app.use('/api/combos',     require('./routes/combos'));
+app.use('/api/stores',     require('./routes/stores'));
+app.use('/api/vendor',     require('./routes/vendor'));
 
 // ── Health check ─────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
   res.json({ success: true, message: 'NearMart API is running 🚀', env: process.env.NODE_ENV });
+});
+
+app.get('/api/test-db', async (req, res) => {
+  try {
+    const Store = require('./models/Store');
+    const Product = require('./models/Product');
+    const stores = await Store.find().lean();
+    const products = await Product.find().populate('store').lean();
+    res.json({
+      success: true,
+      totalStores: stores.length,
+      totalProducts: products.length,
+      stores: stores.map(s => ({ id: s._id, name: s.name })),
+      products: products.slice(0, 15).map(p => ({ id: p._id, name: p.name, store: p.store ? p.store.name : null }))
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/seed', async (req, res) => {
+  try {
+    const seedDatabase = require('./utils/seed');
+    await seedDatabase(true);
+    res.json({ success: true, message: 'Database seeded successfully with 25 stores!' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // ── Web users list helper ────────────────────────────────────

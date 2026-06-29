@@ -1,5 +1,5 @@
-// UNIFIED THEME - Shared with web app via ../../theme/colors.json
-import colors from '../../theme/colors.json';
+// UNIFIED THEME - Synced locally via prestart script
+import colors from '../colors.json';
 
 export const COLORS = {
   // Primary Brand Colors (UNIFIED)

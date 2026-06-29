@@ -59,6 +59,53 @@ const PRODUCT_CATALOG = {
   ],
 };
 
+// Sync with backend products
+export function syncProductCatalogWithBackend(backendProducts) {
+  if (!backendProducts || backendProducts.length === 0) return;
+
+  // Clear existing catalog items to avoid duplicates and ensure true data parity
+  for (const category in PRODUCT_CATALOG) {
+    PRODUCT_CATALOG[category] = [];
+  }
+
+  // Category mappings: Backend -> Client UI Categories
+  const BACKEND_CAT_MAP = {
+    'Rice & Grains': 'Rice & Grains',
+    'Dal & Pulses': 'Dal & Pulses',
+    'Flour & Powders': 'Atta & Flour',
+    'Oil & Ghee': 'Oils & Ghee',
+    'Masalas & Spices': 'Masalas & Spices',
+    'Sugar & Salt': 'Sugar & Salt',
+    'Dry Items & Cooking Essentials': 'Grocery Essentials',
+    'Packed Grocery': 'Packaged Foods',
+  };
+
+  backendProducts.forEach(product => {
+    const rawCat = product.category;
+    const cat = BACKEND_CAT_MAP[rawCat] || rawCat;
+    
+    if (!PRODUCT_CATALOG[cat]) {
+      PRODUCT_CATALOG[cat] = [];
+    }
+
+    PRODUCT_CATALOG[cat].push({
+      id: product._id || product.id,
+      name: product.name,
+      unit: product.unit || '1 kg',
+      basePrice: product.price,
+      originalPrice: product.originalPrice || 0,
+      brand: product.brand || 'Local',
+      image: product.image,
+      rating: product.rating || 4.5,
+      reviewCount: product.reviewCount || 10,
+      stockStatus: product.stockStatus || 'IN_STOCK',
+      stock: product.stock !== undefined ? product.stock : 100,
+      isTrending: product.isTrending || false,
+      isRecommended: product.isRecommended || false,
+    });
+  });
+}
+
 // Generate store-specific products with slight price variations
 let productIdCounter = 1;
 
@@ -68,28 +115,26 @@ export function generateStoreProducts(store) {
   store.categories.forEach(category => {
     const catalogItems = PRODUCT_CATALOG[category] || [];
     catalogItems.forEach(item => {
-      const variance = 0.92 + Math.random() * 0.16;
-      const price = Math.round(item.basePrice * variance);
-      const originalPrice = Math.round(price * (1.1 + Math.random() * 0.15));
-      const rating = (3.8 + Math.random() * 1.1).toFixed(1);
+      // Use exact price from backend database to ensure parity, fallback to calculated original price
+      const price = item.basePrice;
+      const originalPrice = item.originalPrice || Math.round(price * 1.15);
+      const rating = item.rating || parseFloat((3.8 + Math.random() * 1.1).toFixed(1));
       
       const stockRoll = Math.random();
-      let stockQuantity = 0;
-      let stockStatus = 'IN_STOCK';
+      let stockQuantity = item.stock !== undefined ? item.stock : 100;
+      let stockStatus = item.stockStatus || 'IN_STOCK';
       
-      if (stockRoll < 0.1) {
+      if (item.stock === 0 || stockStatus === 'OUT_OF_STOCK') {
         stockQuantity = 0;
         stockStatus = 'OUT_OF_STOCK';
-      } else if (stockRoll < 0.3) {
+      } else if (stockStatus === 'LIMITED') {
         stockQuantity = Math.floor(Math.random() * 5) + 1;
-        stockStatus = 'LIMITED';
-      } else {
-        stockQuantity = Math.floor(Math.random() * 100) + 10;
-        stockStatus = 'IN_STOCK';
       }
 
       products.push({
-        id: `${store.id}-p${productIdCounter++}`,
+        // Stable client-side ID structure that preserves the DB Object ID
+        id: `${store.id}-p${item.id || productIdCounter++}`,
+        dbId: item.id || null,
         storeId: store.id,
         name: item.name,
         category,
@@ -99,14 +144,14 @@ export function generateStoreProducts(store) {
         unit: item.unit,
         image: item.image,
         rating: parseFloat(rating),
-        reviewCount: Math.floor(Math.random() * 300) + 20,
+        reviewCount: item.reviewCount || Math.floor(Math.random() * 300) + 20,
         stockQuantity,
         stockStatus,
         inStock: stockQuantity > 0,
         isHighDemand: Math.random() > 0.8,
         isPopular: Math.random() > 0.7,
-        isTrending: Math.random() > 0.7,
-        isRecommended: Math.random() > 0.6,
+        isTrending: item.isTrending || false,
+        isRecommended: item.isRecommended || false,
       });
     });
   });

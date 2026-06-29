@@ -3,14 +3,20 @@ const bcrypt = require('bcryptjs');
 
 const addressSchema = new mongoose.Schema({
   label: { type: String, default: 'Home' },
-  fullName: { type: String, required: true },
-  phone: { type: String, required: true },
-  line1: { type: String, required: true },
+  fullName: { type: String, required: false },
+  phone: { type: String, required: false },
+  line1: { type: String, required: false },
   line2: { type: String, default: '' },
-  city: { type: String, required: true },
-  state: { type: String, required: true },
-  pincode: { type: String, required: true },
+  city: { type: String, required: false },
+  state: { type: String, required: false },
+  pincode: { type: String, required: false },
   isDefault: { type: Boolean, default: false },
+  encryptedPayload: {
+    ciphertext: { type: String },
+    iv: { type: String },
+    algorithm: { type: String, default: 'AES-GCM-256' },
+    version: { type: String, default: '1.0' }
+  }
 });
 
 const userSchema = new mongoose.Schema(
@@ -20,11 +26,17 @@ const userSchema = new mongoose.Schema(
     firebaseUid: { type: String, unique: true, sparse: true },
     password: { type: String, minlength: 6, select: false },
     phone: { type: String, unique: true, sparse: true, trim: true },
+    encryptedPhone: {
+      ciphertext: { type: String },
+      iv: { type: String }
+    },
+    encryptionSalt: { type: String },
+    rsaPublicKey: { type: String },
     isGuest: { type: Boolean, default: false },
     otpCode: { type: String, select: false },
     otpExpires: { type: Date, select: false },
     avatar: { type: String, default: '' },
-    role: { type: String, enum: ['user', 'admin'], default: 'user' },
+    role: { type: String, enum: ['user', 'admin', 'delivery', 'vendor'], default: 'user' },
     accountType: { type: String, enum: ['regular', 'premium', 'vip'], default: 'regular' },
     addresses: [addressSchema],
     favoriteStores: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Store' }],

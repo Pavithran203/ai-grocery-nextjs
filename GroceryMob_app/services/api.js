@@ -2,7 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Local network IP - phone and PC must be on the same Wi-Fi
-export const API_BASE_URL = 'http://192.168.1.103:5000/api';
+export const API_BASE_URL = 'http://192.168.0.115:5000/api';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -17,7 +17,7 @@ apiClient.interceptors.request.use(async (config) => {
     if (!config.headers.Authorization) {
       let token = authToken;
       if (!token) {
-        token = await AsyncStorage.getItem('groceryAppToken');
+        token = await AsyncStorage.getItem('nearmart_token');
         authToken = token;
       }
       if (token) {

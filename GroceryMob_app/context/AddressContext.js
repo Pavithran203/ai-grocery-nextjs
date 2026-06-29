@@ -7,7 +7,7 @@ const AddressContext = createContext();
 
 export const useAddress = () => useContext(AddressContext);
 
-const STORAGE_KEY = '@freshkart_addresses';
+const STORAGE_KEY = '@nearmart_addresses';
 
 export const AddressProvider = ({ children }) => {
   const { user, updateProfile } = useAuth();

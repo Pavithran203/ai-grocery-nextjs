@@ -50,6 +50,22 @@ const orderSchema = new mongoose.Schema(
     orderNumber: { type: String, unique: true },
     items: [orderItemSchema],
     deliveryAddress: addressSchema,
+    encryptedAddress: {
+      ciphertext: { type: String },
+      iv: { type: String }
+    },
+    encryptedNotes: {
+      ciphertext: { type: String },
+      iv: { type: String }
+    },
+    customerKeyBlob: {
+      ciphertext: { type: String },
+      iv: { type: String }
+    },
+    deliveryKeyBlob: {
+      ciphertext: { type: String } // RSA wrapped key (asymmetric) doesn't need IV
+    },
+    deliveryStaff: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     paymentMethod: { type: String, enum: ['COD', 'card', 'upi', 'wallet', 'netbanking'], default: 'COD' },
     paymentDetails: paymentDetailsSchema,
     paymentStatus: { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' },
@@ -65,6 +81,7 @@ const orderSchema = new mongoose.Schema(
     total: { type: Number, required: true },
     storeId: { type: String },
     storeName: { type: String },
+    store: { type: mongoose.Schema.Types.ObjectId, ref: 'Store' },
     deliveryType: { type: String, enum: ['delivery', 'pickup'], default: 'delivery' },
     estimatedDelivery: { type: Date },
     deliveredAt: { type: Date },
@@ -74,6 +91,12 @@ const orderSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Indexing for faster lookups
+orderSchema.index({ user: 1 });
+orderSchema.index({ store: 1 });
+orderSchema.index({ orderStatus: 1 });
+
 
 // Auto-generate order number before saving
 orderSchema.pre('save', function (next) {

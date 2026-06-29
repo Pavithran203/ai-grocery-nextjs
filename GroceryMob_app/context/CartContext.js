@@ -132,7 +132,8 @@ export const CartProvider = ({ children }) => {
           id: item.product._id,
           quantity: item.quantity,
           cartPrice: item.price,
-          originalPrice: item.product.price
+          originalPrice: item.product.price,
+          storeId: item.storeId || 'store-001' // Standard default store-001 ID
         };
       }).filter(Boolean);
       setCartItems(mappedItems);
@@ -165,8 +166,9 @@ export const CartProvider = ({ children }) => {
 
     if (user && !user.isGuest) {
       try {
-        if (product.id && product.id.length >= 24) {
-           await api.addToCart(product.id, quantity);
+        const dbId = product.dbId || (product.id && typeof product.id === 'string' && product.id.includes('-p') ? product.id.split('-p')[1] : product.id);
+        if (dbId && dbId.length === 24) {
+           await api.addToCart(dbId, quantity);
         }
       } catch (e) {
         // API sync failed
@@ -179,9 +181,9 @@ export const CartProvider = ({ children }) => {
     
     if (user && !user.isGuest) {
       try {
-        // Only call backend if it looks like a real database ID
-        if (id && typeof id === 'string' && id.length >= 24) {
-          await api.removeFromCart(id);
+        const dbId = id && typeof id === 'string' && id.includes('-p') ? id.split('-p')[1] : id;
+        if (dbId && typeof dbId === 'string' && dbId.length === 24) {
+          await api.removeFromCart(dbId);
         }
       } catch (e) {
         console.error('Failed to remove item from server', e.message);
@@ -197,8 +199,9 @@ export const CartProvider = ({ children }) => {
     
     if (user && !user.isGuest) {
       try {
-        if (id && id.length >= 24) {
-           await api.updateCartItem(id, quantity);
+        const dbId = id && typeof id === 'string' && id.includes('-p') ? id.split('-p')[1] : id;
+        if (dbId && dbId.length === 24) {
+           await api.updateCartItem(dbId, quantity);
         }
       } catch (e) {
         console.error('Failed to update quantity', e);

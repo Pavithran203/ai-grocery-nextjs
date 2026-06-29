@@ -141,9 +141,9 @@ export const StoreProvider = ({ children }) => {
     return shuffled.map(p => ({
       ...p,
       originalId: p.id,
-      id: `${shop.id}__${p.id}`,
-      storeId: shop.id,
-      storeName: shop.name
+      id: p.id && p.id.includes('__') ? p.id : `${shop.id}__${p.id}`,
+      storeId: p.storeId || p.store?._id || p.store?.id || shop.id,
+      storeName: p.storeName || p.store?.name || shop.name
     }));
   };
 

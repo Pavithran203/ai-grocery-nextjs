@@ -12,6 +12,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { usePreferences } from '../context/PreferencesContext';
 import { useDebounce } from '../hooks/useDebounce';
 import { searchService } from '../services/searchService';
+import { storeService } from '../services/storeService';
 
 // New home components
 import WelcomeSection from '../components/home/WelcomeSection';
@@ -42,6 +43,7 @@ export default function HomeScreen({ navigation }) {
       try {
         const allProd = await api.getProducts();
         setAllProducts(allProd);
+        storeService.syncWithBackend(allProd);
       } catch (error) {
         console.error(error);
       } finally {

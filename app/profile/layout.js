@@ -17,8 +17,10 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useLoyalty } from "@/context/LoyaltyContext";
 import { useOrders } from "@/context/OrdersContext";
+import { useTranslation } from "react-i18next";
 
 export default function ProfileLayout({ children }) {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { coins } = useLoyalty();
@@ -27,31 +29,21 @@ export default function ProfileLayout({ children }) {
   const isPremium = user?.accountType === 'premium' || user?.isPremium === true;
   const totalSavings = orders ? orders.reduce((sum, order) => sum + (Number(order.discount) || 0), 0) : 0;
 
-  const menuItems = [
-    { id: 'overview', label: 'Overview', icon: User, href: '/profile' },
-    { id: 'orders', label: 'My Orders', icon: ShoppingBag, href: '/orders' },
-    { id: 'wishlist', label: 'My Wishlist', icon: Heart, href: '/wishlist' },
-    { id: 'addresses', label: 'Addresses', icon: MapPin, href: '/profile/addresses' },
-    { id: 'payments', label: 'Payments', icon: CreditCard, href: '/profile/payments' },
-    { id: 'security', label: 'Security', icon: ShieldCheck, href: '/profile/settings' }, // redirect security to settings or keep settings
-    { id: 'settings', label: 'Settings', icon: Settings, href: '/profile/settings' },
-  ];
-
   // Map menuItems back to correct targets
   const actualMenuItems = [
-    { id: 'overview', label: 'Overview', icon: User, href: '/profile' },
-    { id: 'orders', label: 'My Orders', icon: ShoppingBag, href: '/orders' },
-    { id: 'wishlist', label: 'My Wishlist', icon: Heart, href: '/wishlist' },
-    { id: 'addresses', label: 'Addresses', icon: MapPin, href: '/profile/addresses' },
-    { id: 'payments', label: 'Payments', icon: CreditCard, href: '/profile/payments' },
-    { id: 'security', label: 'Security', icon: ShieldCheck, href: '/profile/security' },
-    { id: 'settings', label: 'Settings', icon: Settings, href: '/profile/settings' },
+    { id: 'overview', label: t('profile.sidebar.overview'), icon: User, href: '/profile' },
+    { id: 'orders', label: t('profile.sidebar.myOrders'), icon: ShoppingBag, href: '/orders' },
+    { id: 'wishlist', label: t('profile.sidebar.myWishlist'), icon: Heart, href: '/wishlist' },
+    { id: 'addresses', label: t('profile.sidebar.addresses'), icon: MapPin, href: '/profile/addresses' },
+    { id: 'payments', label: t('profile.sidebar.payments'), icon: CreditCard, href: '/profile/payments' },
+    { id: 'security', label: t('profile.sidebar.security'), icon: ShieldCheck, href: '/profile/security' },
+    { id: 'settings', label: t('profile.sidebar.settings'), icon: Settings, href: '/profile/settings' },
   ];
 
   if (!user) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Please sign in to view your profile</h2>
+        <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">{t('profile.sidebar.pleaseSignIn')}</h2>
         <Link href="/" className="inline-block bg-emerald-600 text-white px-8 py-3 rounded-2xl font-black">
           Back to Home
         </Link>
@@ -104,7 +96,7 @@ export default function ProfileLayout({ children }) {
               >
                 <div className="flex items-center gap-3">
                   <LogOut className="w-5 h-5 text-rose-400 group-hover:text-rose-500" />
-                  <span className="font-black text-sm uppercase tracking-wider">Logout</span>
+                  <span className="font-black text-sm uppercase tracking-wider">{t('profile.sidebar.logout')}</span>
                 </div>
               </button>
             </nav>
@@ -116,14 +108,14 @@ export default function ProfileLayout({ children }) {
                 <Star className="w-5 h-5" style={{ color: '#A7F3D0' }} />
               </div>
               <div>
-                <h3 className="font-black text-base leading-tight">{isPremium ? 'Premium Member' : 'Standard Member'}</h3>
-                <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#A7F3D0' }}>{isPremium ? 'Active plan' : 'Standard Plan'}</p>
+                <h3 className="font-black text-base leading-tight">{isPremium ? t('profile.sidebar.premiumMember') : t('profile.sidebar.standardMember')}</h3>
+                <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#A7F3D0' }}>{isPremium ? t('profile.sidebar.activePlan') : t('profile.sidebar.standardPlan')}</p>
               </div>
             </div>
-            <p className="text-xs font-medium mb-4" style={{ color: '#D1FAE5' }}>You've saved ₹{totalSavings.toLocaleString('en-IN')} this month!</p>
+            <p className="text-xs font-medium mb-4" style={{ color: '#D1FAE5' }}>{t('profile.sidebar.savedThisMonth', { amount: totalSavings.toLocaleString('en-IN') })}</p>
             <div className="rounded-2xl p-3" style={{ backgroundColor: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <p className="text-[10px] font-black uppercase tracking-widest mb-1" style={{ color: '#A7F3D0' }}>Your Rewards</p>
-              <p className="text-2xl font-black tracking-tighter leading-none">🪙 {coins || 0} <span className="text-xs font-bold" style={{ color: '#A7F3D0' }}>COINS</span></p>
+              <p className="text-[10px] font-black uppercase tracking-widest mb-1" style={{ color: '#A7F3D0' }}>{t('profile.sidebar.yourRewards')}</p>
+              <p className="text-2xl font-black tracking-tighter leading-none">🪙 {coins || 0} <span className="text-xs font-bold" style={{ color: '#A7F3D0' }}>{t('profile.sidebar.coins')}</span></p>
             </div>
           </div>
         </aside>

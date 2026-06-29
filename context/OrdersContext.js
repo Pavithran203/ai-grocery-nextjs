@@ -190,7 +190,7 @@ export const OrdersProvider = ({ children }) => {
        ...orderData,
        id: orderData.id || orderData._id || 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase()
     };
-    
+     
     const key = getOrdersKey();
     if (!key) return null;
 
@@ -243,9 +243,17 @@ export const OrdersProvider = ({ children }) => {
         localStorage.setItem(key, JSON.stringify(existing));
       } catch (err) {}
     }
+
+    if (user && !user.isGuest) {
+      try {
+        await api.cancelOrder(orderId);
+      } catch (e) {
+        console.error("Backend cancel failed:", e);
+      }
+    }
   };
 
-  const updateOrderStatus = (orderId, newStatus) => {
+  const updateOrderStatus = async (orderId, newStatus) => {
     setOrders(prev => prev.map(o => o.id === orderId || o._id === orderId ? { ...o, status: newStatus, orderStatus: newStatus } : o));
     const key = getOrdersKey();
     if (!key) return;
@@ -267,6 +275,14 @@ export const OrdersProvider = ({ children }) => {
       
       localStorage.setItem(key, JSON.stringify(existing));
     } catch (e) {}
+
+    if (user && !user.isGuest) {
+      try {
+        await api.updateOrderStatus(orderId, newStatus);
+      } catch (e) {
+        console.error("Backend updateOrderStatus failed:", e);
+      }
+    }
   };
 
   return (

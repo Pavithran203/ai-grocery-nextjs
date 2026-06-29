@@ -6,7 +6,7 @@ const WishlistContext = createContext();
 
 export const useWishlist = () => useContext(WishlistContext);
 
-const STORAGE_KEY_PREFIX = '@freshkart_wishlist_';
+const STORAGE_KEY_PREFIX = '@nearmart_wishlist_';
 
 export const WishlistProvider = ({ children }) => {
   const [wishlist, setWishlist] = useState([]);
@@ -46,12 +46,15 @@ export const WishlistProvider = ({ children }) => {
     }
   };
 
+  const getDbId = (id) => id && typeof id === 'string' && id.includes('-p') ? id.split('-p')[1] : id;
+
   const toggleWishlist = (product) => {
     setWishlist(prev => {
-      const exists = prev.find(item => item.id === product.id);
+      const prodDbId = getDbId(product.id);
+      const exists = prev.find(item => getDbId(item.id) === prodDbId);
       let updated;
       if (exists) {
-        updated = prev.filter(item => item.id !== product.id);
+        updated = prev.filter(item => getDbId(item.id) !== prodDbId);
       } else {
         updated = [...prev, product];
       }
@@ -60,7 +63,10 @@ export const WishlistProvider = ({ children }) => {
     });
   };
 
-  const isInWishlist = (id) => wishlist.some(item => item.id === id);
+  const isInWishlist = (id) => {
+    const targetDbId = getDbId(id);
+    return wishlist.some(item => getDbId(item.id) === targetDbId);
+  };
 
   return (
     <WishlistContext.Provider value={{ wishlist, toggleWishlist, isInWishlist }}>

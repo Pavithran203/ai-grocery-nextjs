@@ -13,10 +13,11 @@ import {
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import SafeImage from "@/components/SafeImage";
+
 export default function WishlistPage() {
   const { wishlistItems = [], removeFromWishlist, clearWishlist } = useWishlist();
   const { addToCart } = useCart();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const language = i18n.language;
 
   if (!wishlistItems || wishlistItems.length === 0) {
@@ -25,9 +26,9 @@ export default function WishlistPage() {
         <div className="w-24 h-24 bg-rose-50 dark:bg-rose-950/20 rounded-full flex items-center justify-center mx-auto mb-8 border-4 border-white dark:border-gray-900 shadow-xl">
           <Heart className="w-10 h-10 text-rose-500 fill-rose-500/20" />
         </div>
-        <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter mb-4">Your wishlist is empty</h1>
+        <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter mb-4">{t('wishlist.emptyTitle', { defaultValue: 'Your wishlist is empty' })}</h1>
         <p className="text-gray-600 dark:text-gray-400 font-bold uppercase text-xs tracking-widest max-w-sm mx-auto leading-relaxed mb-10">
-          Save items you love to your wishlist and they'll show up here so you can find them later.
+          {t('wishlist.emptySubtitle', { defaultValue: "Save items you love to your wishlist and they'll show up here so you can find them later." })}
         </p>
         <Link 
           href="/" 
@@ -46,7 +47,7 @@ export default function WishlistPage() {
           }}
           className="hover:brightness-110 active:scale-95 transition-all"
         >
-          Explore Products <ShoppingBag className="w-6 h-6" />
+          {t('wishlist.exploreProducts', { defaultValue: 'Explore Products' })} <ShoppingBag className="w-6 h-6" />
         </Link>
       </div>
     );
@@ -61,17 +62,17 @@ export default function WishlistPage() {
           </Link>
           <div>
             <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter flex items-center gap-4">
-              My Wishlist 
+              {t('wishlist.title', { defaultValue: 'My Wishlist' })} 
               <span className="text-sm bg-rose-500 text-white px-3 py-1 rounded-full">{wishlistItems.length}</span>
             </h1>
-            <p className="text-gray-400 font-bold uppercase text-[10px] tracking-[0.4em] mt-1">Saved for later</p>
+            <p className="text-gray-405 font-bold uppercase text-[10px] tracking-[0.4em] mt-1">{t('wishlist.subtitle', { defaultValue: 'Saved for later' })}</p>
           </div>
         </div>
         <button 
           onClick={clearWishlist}
           className="px-4 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/20 text-[10px] font-black text-rose-500 hover:bg-rose-100 uppercase tracking-widest transition-all border border-rose-100 dark:border-rose-900"
         >
-          Clear All Items
+          {t('wishlist.clearAll', { defaultValue: 'Clear All Items' })}
         </button>
       </div>
 
@@ -116,15 +117,15 @@ export default function WishlistPage() {
 
             <div className="mt-8 flex items-center justify-between pt-4 border-t border-gray-50 dark:border-gray-800">
               <div>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Price</p>
+                <p className="text-[10px] font-black text-gray-450 uppercase tracking-widest">{t('wishlist.price', { defaultValue: 'Price' })}</p>
                 <p className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter">₹{product.price}</p>
               </div>
               <button 
                 onClick={() => addToCart(product)}
                 className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-emerald-600/20 hover:scale-105 active:scale-95 transition-all"
               >
-                <ShoppingCart size={18} strokeWidth={3} />
-                <span>Add</span>
+                <ShoppingBag size={18} strokeWidth={3} />
+                <span>{t('wishlist.add', { defaultValue: 'Add' })}</span>
               </button>
             </div>
           </div>

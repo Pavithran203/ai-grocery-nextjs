@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '@/services/api';
 import { useAuth } from './AuthContext';
+import { encryptSymmetric, decryptSymmetric } from '@/services/e2ee';
 
 const AddressContext = createContext();
 
@@ -11,8 +12,9 @@ const STORAGE_KEY_PREFIX = 'nearmart_addresses_';
 
 export const AddressProvider = ({ children }) => {
   const [addresses, setAddresses] = useState([]);
+  const [decryptedAddresses, setDecryptedAddresses] = useState([]);
   const [defaultAddressId, setDefaultAddressId] = useState(null);
-  const { user } = useAuth();
+  const { user, masterKey } = useAuth();
 
   const getStorageKey = () => user ? `${STORAGE_KEY_PREFIX}${user._id || user.id}` : null;
 
@@ -21,8 +23,6 @@ export const AddressProvider = ({ children }) => {
     const load = async () => {
       try {
         if (user && !user.isGuest) {
-          // In a fully integrated flow, addresses are usually sent along with user object
-          // or we fetch them from api.getMe(). The backend /auth/me returns them.
           const me = await api.getMe();
           if (me && me.addresses) {
             setAddresses(me.addresses);
@@ -51,7 +51,6 @@ export const AddressProvider = ({ children }) => {
           setDefaultAddressId(null);
         }
       } catch (e) {
-        // Suppress network fetch errors since the dummy backend isn't running
         // Fallback to local storage
         const key = getStorageKey();
         if (key) {
@@ -67,6 +66,36 @@ export const AddressProvider = ({ children }) => {
     load();
   }, [user]);
 
+  // Decrypt addresses reactively when masterKey is loaded
+  useEffect(() => {
+    const decryptAll = async () => {
+      if (!addresses || addresses.length === 0) {
+        setDecryptedAddresses([]);
+        return;
+      }
+      const list = [];
+      for (const addr of addresses) {
+        if (addr.encryptedPayload && masterKey) {
+          try {
+            const decrypted = await decryptSymmetric(
+              addr.encryptedPayload.ciphertext, 
+              addr.encryptedPayload.iv, 
+              masterKey
+            );
+            list.push({ ...addr, ...decrypted });
+          } catch (e) {
+            console.error('Failed to decrypt address:', e);
+            list.push({ ...addr, isDecryptionFailed: true });
+          }
+        } else {
+          list.push(addr);
+        }
+      }
+      setDecryptedAddresses(list);
+    };
+    decryptAll();
+  }, [addresses, masterKey]);
+
   // Save to localStorage for guests
   const persistLocal = (addrs, defId) => {
     const key = getStorageKey();
@@ -80,8 +109,28 @@ export const AddressProvider = ({ children }) => {
 
   const addAddress = async (addr) => {
     try {
-      if (user && !user.isGuest) {
-        const updatedAddresses = await api.addAddress(addr);
+      if (user && !user.isGuest && masterKey) {
+        const sensitiveData = {
+          fullName: addr.fullName,
+          phone: addr.phone,
+          line1: addr.line1,
+          line2: addr.line2 || '',
+          city: addr.city,
+          state: addr.state,
+          pincode: addr.pincode
+        };
+        const encrypted = await encryptSymmetric(sensitiveData, masterKey);
+        const payload = {
+          label: addr.label || 'Home',
+          encryptedPayload: {
+            ciphertext: encrypted.ciphertext,
+            iv: encrypted.iv,
+            algorithm: 'AES-GCM-256',
+            version: '1.0'
+          }
+        };
+
+        const updatedAddresses = await api.addAddress(payload);
         if (updatedAddresses) {
           setAddresses(updatedAddresses);
           const newId = updatedAddresses[updatedAddresses.length - 1]._id || updatedAddresses[updatedAddresses.length - 1].id;
@@ -90,7 +139,7 @@ export const AddressProvider = ({ children }) => {
         }
       }
     } catch (e) {
-      console.error('Failed to save address to backend', e);
+      console.error('Failed to save address to backend with E2EE, saving locally:', e);
     }
 
     // Fallback/Guest
@@ -103,8 +152,6 @@ export const AddressProvider = ({ children }) => {
   };
 
   const updateAddress = (id, updatedAddr) => {
-    // Backend doesn't have an explicit updateAddress endpoint in our api.js right now
-    // So we just update local state or user profile. For now, mimic local update.
     const updated = addresses.map(a => (a.id === id || a._id === id) ? { ...a, ...updatedAddr } : a);
     setAddresses(updated);
     persistLocal(updated, defaultAddressId);
@@ -143,17 +190,18 @@ export const AddressProvider = ({ children }) => {
   };
 
   const getDefaultAddress = () => {
-    return addresses.find(a => (a.id === defaultAddressId || a._id === defaultAddressId)) || addresses[0] || null;
+    return decryptedAddresses.find(a => (a.id === defaultAddressId || a._id === defaultAddressId)) || decryptedAddresses[0] || null;
   };
 
   const formatAddress = (addr) => {
     if (!addr) return 'No address set';
+    if (addr.isDecryptionFailed) return '🔒 Address locked (Enter password to decrypt)';
     return [addr.line1, addr.city, addr.state, addr.pincode].filter(Boolean).join(', ');
   };
 
   return (
     <AddressContext.Provider value={{
-      addresses,
+      addresses: decryptedAddresses,
       defaultAddressId,
       addAddress,
       updateAddress,

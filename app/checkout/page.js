@@ -13,9 +13,18 @@ import { useAuth } from "@/context/AuthContext";
 import { useOrders } from "@/context/OrdersContext";
 import { useTranslation } from "react-i18next";
 import { useAddress } from "@/context/AddressContext";
+import { useStore } from "@/context/StoreContext";
 import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import SafeImage from "@/components/SafeImage";
+import { 
+  generateOrderKey, 
+  encryptSymmetric, 
+  wrapOrderKeyWithPassword, 
+  importPublicKey, 
+  wrapOrderKeyWithRsa 
+} from "@/services/e2ee";
 
 // ─────────────────────────────────────────
 // Step indicator
@@ -75,11 +84,57 @@ function Section({ title, icon, children, step, current, onEdit, collapsible = f
 // Main Component
 // ─────────────────────────────────────────
 export default function CheckoutPage() {
-  const { user, loading: authLoading } = useAuth();
-  const { cartItems, clearCart, getCartTotal } = useCart();
+  const { user, loading: authLoading, masterKey } = useAuth();
+  const { cartItems: contextCartItems, clearCart, getCartTotal } = useCart();
   const { addresses, getDefaultAddress } = useAddress();
+  const { selectedStore } = useStore();
   const { t, i18n } = useTranslation();
   const language = i18n.language;
+
+  const [deliveryStaffList, setDeliveryStaffList] = useState([]);
+  const [selectedStaffId, setSelectedStaffId] = useState('');
+
+  useEffect(() => {
+    if (user && !user.isGuest) {
+      api.getDeliveryStaff()
+        .then(staff => {
+          setDeliveryStaffList(staff || []);
+          if (staff && staff.length > 0) {
+            const withKey = staff.find(s => s.rsaPublicKey);
+            if (withKey) {
+              setSelectedStaffId(withKey._id);
+            } else {
+              setSelectedStaffId(staff[0]._id);
+            }
+          }
+        })
+        .catch(err => console.error('Failed to load delivery staff:', err));
+    }
+  }, [user]);
+
+  const searchParams = useSearchParams();
+  const isDirectBuy = searchParams.get('directBuy') === 'true';
+  const [directBuyItem, setDirectBuyItem] = useState(null);
+
+  useEffect(() => {
+    if (isDirectBuy && typeof window !== 'undefined') {
+      try {
+        const stored = sessionStorage.getItem('nearmart_direct_buy_item');
+        if (stored) {
+          setDirectBuyItem(JSON.parse(stored));
+        }
+      } catch (e) {
+        console.error("Error loading direct buy item:", e);
+      }
+    }
+  }, [isDirectBuy]);
+
+  const cartItems = useMemo(() => {
+    if (isDirectBuy) {
+      return directBuyItem ? [directBuyItem] : [];
+    }
+    return contextCartItems;
+  }, [isDirectBuy, directBuyItem, contextCartItems]);
 
   const PAYMENT_METHODS = useMemo(() => [
     { id: 'upi',  label: t('checkout.upiLabel'),       sub: t('checkout.upiSub'), icon: <Smartphone className="w-5 h-5" />, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-950/30', border: 'border-violet-300 dark:border-violet-700' },
@@ -255,8 +310,91 @@ export default function CheckoutPage() {
     setPaymentError('');
     setLoading(true);
     
+    // Validate stock before placing the order
+    try {
+      const latestProducts = await api.getProducts();
+      for (const item of cartItems) {
+        const latestProduct = latestProducts.find(p => String(p.id) === String(item.id));
+        if (latestProduct) {
+          const prodName = latestProduct[`name_${language}`] || latestProduct.name;
+          if (!latestProduct.isAvailable) {
+            throw new Error(`Sorry, "${prodName}" is currently out of stock / unavailable.`);
+          }
+          if (item.quantity > latestProduct.stock) {
+            throw new Error(`Sorry, only ${latestProduct.stock} unit(s) of "${prodName}" are available in stock. You have selected ${item.quantity}.`);
+          }
+        }
+      }
+    } catch (stockError) {
+      setPaymentError(stockError.message);
+      setLoading(false);
+      return;
+    }
+    
     try {
       let resultOrder;
+      
+      // E2EE variables
+      let encryptedAddress = undefined;
+      let encryptedNotes = undefined;
+      let customerKeyBlob = undefined;
+      let deliveryKeyBlob = undefined;
+      let assignedDeliveryStaffId = undefined;
+
+      if (user && !user.isGuest && masterKey) {
+        try {
+          // 1. Generate Order Key (AES-GCM-256)
+          const orderKey = await generateOrderKey();
+          
+          // 2. Encrypt shipping address details
+          const addressPayload = {
+            fullName: guestName,
+            phone: guestPhone,
+            line1: flatNo,
+            line2: address,
+            city: 'N/A',
+            state: 'N/A',
+            pincode: pincode
+          };
+          const encAddr = await encryptSymmetric(addressPayload, orderKey);
+          encryptedAddress = {
+            ciphertext: encAddr.ciphertext,
+            iv: encAddr.iv
+          };
+
+          // 3. Encrypt notes/instructions if present
+          if (instruction) {
+            const encNotes = await encryptSymmetric({ notes: instruction }, orderKey);
+            encryptedNotes = {
+              ciphertext: encNotes.ciphertext,
+              iv: encNotes.iv
+            };
+          }
+
+          // 4. Wrap order key with customer master key
+          const customerWrapped = await wrapOrderKeyWithPassword(orderKey, masterKey);
+          customerKeyBlob = {
+            ciphertext: customerWrapped.wrappedKey,
+            iv: customerWrapped.iv
+          };
+
+          // 5. Wrap order key with selected delivery staff's public key (deliberate customer-controlled flow)
+          if (selectedStaffId) {
+            const staff = deliveryStaffList.find(s => s._id === selectedStaffId);
+            if (staff && staff.rsaPublicKey) {
+              const rsaPubKey = await importPublicKey(staff.rsaPublicKey);
+              const rsaWrappedKey = await wrapOrderKeyWithRsa(orderKey, rsaPubKey);
+              deliveryKeyBlob = {
+                ciphertext: rsaWrappedKey
+              };
+              assignedDeliveryStaffId = staff._id;
+            }
+          }
+        } catch (cryptoErr) {
+          console.error("Crypto operation failed during order creation:", cryptoErr);
+        }
+      }
+
       const orderPayload = {
         deliveryAddress: { 
           fullName: guestName, 
@@ -266,6 +404,11 @@ export default function CheckoutPage() {
           state: 'N/A', 
           pincode 
         },
+        encryptedAddress,
+        encryptedNotes,
+        customerKeyBlob,
+        deliveryKeyBlob,
+        deliveryStaff: assignedDeliveryStaffId,
         paymentMethod: paymentMethod,
         notes: instruction,
         items: cartItems,
@@ -273,7 +416,9 @@ export default function CheckoutPage() {
         subtotal: subTotal,
         deliveryFee,
         discount: couponDiscount,
-        tax: 0
+        tax: 0,
+        storeId: selectedStore?.id || cartItems[0]?.storeId || 'default-store',
+        storeName: selectedStore?.name || cartItems[0]?.storeName || 'NearMart Local'
       };
 
       let backendOrder = null;
@@ -282,7 +427,13 @@ export default function CheckoutPage() {
         try {
           backendOrder = await api.createOrder(orderPayload);
         } catch (e) {
-          console.warn("Backend order creation failed or backend unavailable, proceeding with local web order.");
+          if (e.isOffline) {
+            alert("Unable to reach the server. Please verify if the backend is running.");
+          } else {
+            alert(e.message || "Order placement failed.");
+          }
+          setStep(4); // Reset step back to payment details
+          return;
         }
       }
 
@@ -293,13 +444,21 @@ export default function CheckoutPage() {
 
       // Save for personalized home screen (Returning User logic)
       const lastOrder = {
-        store: 'NearMart Local',
+        store: selectedStore?.name || cartItems[0]?.storeName || 'NearMart Local',
         items: cartItems.slice(0, 3), // Save top 3 items for suggestion
         date: new Date().toISOString()
       };
       sessionStorage.setItem('nearmart_last_order', JSON.stringify(lastOrder));
       
-      await clearCart();
+      if (isDirectBuy) {
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('nearmart_direct_buy_item');
+        }
+      } else {
+        await clearCart();
+      }
+
+      const selectedStaff = selectedStaffId ? deliveryStaffList.find(s => s._id === selectedStaffId) : null;
 
       // Enrich with mock delivery details for the DeliveryTracker component
       const enrichedOrder = {
@@ -309,9 +468,14 @@ export default function CheckoutPage() {
         estimatedDelivery: '12–18 mins',
         customer: { name: guestName },
         tip,
-        deliveryBoy: {
-          name: 'Arjun Sharma',
-          phone: '+91 98765 43210',
+        deliveryBoy: selectedStaff ? {
+          name: selectedStaff.name,
+          phone: selectedStaff.phone || '+91 98765 43210',
+          rating: 4.9,
+          vehicle: 'Electric Scooter (EV-09)',
+        } : {
+          name: deliveryStaffList[0]?.name || 'Ravi Kumar (E2EE)',
+          phone: deliveryStaffList[0]?.phone || '+91 98765 43210',
           rating: 4.8,
           vehicle: 'Electric Scooter (EV-09)',
         }
@@ -332,6 +496,16 @@ export default function CheckoutPage() {
 
   // ─── ORDER SUCCESS ───
   if (orderResult) return <DeliveryTracker order={orderResult} />;
+
+  // ─── LOADING DIRECT BUY ITEM ───
+  if (isDirectBuy && !directBuyItem) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-20 text-center flex flex-col items-center justify-center">
+        <Loader2 className="w-10 h-10 text-emerald-500 animate-spin mb-4" />
+        <p className="text-gray-500">Preparing instant checkout...</p>
+      </div>
+    );
+  }
 
   // ─── EMPTY CART ───
   if (cartItems.length === 0) return (
@@ -738,6 +912,69 @@ export default function CheckoutPage() {
                       <p className="font-black text-emerald-800 dark:text-emerald-200">Cash on Delivery</p>
                       <p className="text-sm text-emerald-700 dark:text-emerald-400 mt-1">Pay ₹{totalAmount.toFixed(0)} in cash when your delivery arrives. Keep change handy.</p>
                     </div>
+                  </div>
+                )}
+
+                {/* Secure E2EE Delivery Authorization */}
+                {user && !user.isGuest && (
+                  <div className="bg-emerald-50/40 dark:bg-emerald-950/10 border border-emerald-100/80 dark:border-emerald-900/60 rounded-3xl p-5 space-y-4">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <h4 className="font-black text-sm text-gray-800 dark:text-gray-150">
+                        Secure E2EE Delivery Authorization
+                      </h4>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                      Choose a verified delivery agent. Your delivery address and instructions will be encrypted in your browser using their public key, so only they can decrypt it.
+                    </p>
+
+                    {deliveryStaffList.length > 0 ? (
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Authorized Delivery Agent *</label>
+                        <div className="grid grid-cols-1 gap-2">
+                          {deliveryStaffList.map(staff => {
+                            const hasPublicKey = !!staff.rsaPublicKey;
+                            return (
+                              <div 
+                                key={staff._id}
+                                onClick={() => hasPublicKey && setSelectedStaffId(staff._id)}
+                                className={`flex items-center justify-between p-3.5 rounded-2xl border-2 transition-all cursor-pointer ${
+                                  !hasPublicKey ? 'opacity-50 cursor-not-allowed border-gray-100 dark:border-gray-800/40' :
+                                  selectedStaffId === staff._id ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-405' : 'border-gray-200 dark:border-gray-800 hover:border-emerald-400'
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-xs font-bold text-emerald-700">
+                                    {staff.name.charAt(0)}
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-black text-gray-800 dark:text-gray-200">{staff.name}</p>
+                                    <p className="text-[10px] text-gray-400">{staff.email}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {hasPublicKey ? (
+                                    <span className="text-[9px] font-black text-emerald-600 bg-emerald-100 dark:bg-emerald-900/40 px-2 py-0.5 rounded-full uppercase tracking-wider">E2EE Key Verified</span>
+                                  ) : (
+                                    <span className="text-[9px] font-black text-red-500 bg-red-100 dark:bg-red-950/20 px-2 py-0.5 rounded-full uppercase tracking-wider">Missing Public Key</span>
+                                  )}
+                                  {selectedStaffId === staff._id && (
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-orange-50 dark:bg-orange-950/10 border border-orange-100 dark:border-orange-900/50 rounded-2xl p-4 flex gap-2.5 items-start">
+                        <Info className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
+                        <p className="text-xs text-orange-700 dark:text-orange-400 font-medium">
+                          No registered E2EE delivery agents found. Legacy address routing will be used.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 

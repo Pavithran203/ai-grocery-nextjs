@@ -1,5 +1,5 @@
 import { DEMO_STORES } from '../data/demoStores';
-import { generateStoreProducts } from '../data/storeProducts';
+import { generateStoreProducts, syncProductCatalogWithBackend } from '../data/storeProducts';
 
 // Haversine formula — returns distance in km
 function getDistanceKm(lat1, lon1, lat2, lon2) {
@@ -118,6 +118,19 @@ function calculateDeliveryInfo(store, distance, orderAmount = 0) {
 const _cache = {};
 
 export const storeService = {
+  // Sync in-memory store-products with database products
+  syncWithBackend(backendProducts) {
+    if (!backendProducts || backendProducts.length === 0) return;
+    
+    // Clear product cache
+    for (const key in _cache) {
+      delete _cache[key];
+    }
+    
+    // Update product catalog with backend products
+    syncProductCatalogWithBackend(backendProducts);
+  },
+
   // Get nearby stores using REAL coordinates — returns [] if no coords
   getNearbyStores(userLat, userLon, radiusKm = 15, favoriteStoreIds = []) {
     if (userLat == null || userLon == null) return [];

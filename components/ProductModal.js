@@ -1,16 +1,33 @@
 "use client";
-import { X, ShoppingCart, Star, ShieldCheck, Zap, Heart, Share2, Info, Sparkles } from "lucide-react";
+import { X, ShoppingCart, Star, ShieldCheck, Zap, Heart, Share2, Info, Sparkles, Tag } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "next/navigation";
 import SafeImage from "./SafeImage";
 export default function ProductModal({ product, onClose }) {
+  const router = useRouter();
   const { cartItems, addToCart, updateQuantity } = useCart();
   const { t, i18n } = useTranslation();
   const language = i18n.language;
   const inCart = cartItems.find(item => item.id === product.id);
 
   const [isClosing, setIsClosing] = useState(false);
+
+  const handleBuyNow = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (typeof window !== 'undefined') {
+      const buyNowItem = {
+        ...product,
+        quantity: 1
+      };
+      sessionStorage.setItem('nearmart_direct_buy_item', JSON.stringify(buyNowItem));
+      // First clear isClosing state if we're redirecting
+      document.body.style.overflow = 'unset';
+      router.push('/checkout?directBuy=true');
+    }
+  };
 
 
   useEffect(() => {
@@ -93,17 +110,17 @@ export default function ProductModal({ product, onClose }) {
             {/* Image Section */}
             <div className="w-full md:w-1/2">
               <div className="relative rounded-[32px] overflow-hidden p-8 aspect-square flex items-center justify-center bg-emerald-50/50 dark:bg-emerald-500/5 shadow-inner">
-                <SafeImage 
-                  src={product.image_url || product.image} 
-                  alt={productName || 'Product Image'} 
-                  type="product"
-                  entityId={product.id}
-                  productName={product.name}
-                  componentName="ProductModal"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  objectFit="contain"
-                />
+                  <SafeImage 
+                    src={product.image_url || product.image || product.imageUrl} 
+                    alt={productName || 'Product Image'} 
+                    type="product"
+                    entityId={product.id}
+                    productName={product.name}
+                    componentName="ProductModal"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    objectFit="contain"
+                  />
                 {parseFloat(product.rating) >= 4.8 && (
                   <div className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-gradient-to-br from-amber-400 to-orange-500 text-white px-3 py-1 rounded-xl font-black text-[10px] tracking-widest shadow-xl shadow-amber-500/20 uppercase border border-white/20 animate-fadeIn">
                     <Sparkles className="w-3.5 h-3.5" />
@@ -209,38 +226,52 @@ export default function ProductModal({ product, onClose }) {
         </div>
 
         {/* Footer (Sticky CTA) */}
-        <div className="p-8 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950">
-          <div className="max-w-md mx-auto flex items-center gap-4">
-            {inCart ? (
-              <div className="flex-1 flex items-center justify-between bg-rose-50 dark:bg-rose-500/10 p-2 rounded-3xl border-2 border-rose-500/20 shadow-inner">
-                <button 
-                  onClick={() => updateQuantity(product.id, inCart.quantity - 1)}
-                  className="w-14 h-14 flex items-center justify-center rounded-2xl bg-white dark:bg-gray-900 text-rose-600 shadow-sm hover:scale-105 active:scale-95 transition-all"
-                >
-                  <span className="text-3xl font-black">-</span>
-                </button>
-                <div className="flex flex-col items-center">
-                  <span className="text-2xl font-black text-rose-600 dark:text-rose-400">{inCart.quantity}</span>
-                  <span className="text-[10px] font-black text-rose-600/60 uppercase tracking-widest">{t('cart.inCart', 'In Cart')}</span>
+        <div className="p-6 sm:p-8 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950">
+          <div className="max-w-xl mx-auto flex flex-col sm:flex-row items-center gap-3">
+            {/* Add / Quantity section */}
+            <div className="w-full sm:flex-1">
+              {inCart ? (
+                <div className="flex items-center justify-between w-full bg-rose-50 dark:bg-rose-500/10 p-1.5 rounded-2xl border border-rose-200 dark:border-rose-800 shadow-inner h-14">
+                  <button 
+                    onClick={() => updateQuantity(product.id, inCart.quantity - 1)}
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-white dark:bg-gray-900 text-rose-600 shadow-sm hover:scale-105 active:scale-95 transition-all"
+                  >
+                    <span className="text-2xl font-black">-</span>
+                  </button>
+                  <div className="flex flex-col items-center">
+                    <span className="text-xl font-black text-rose-600 dark:text-rose-400">{inCart.quantity}</span>
+                    <span className="text-[8px] font-black text-rose-600/60 uppercase tracking-widest leading-none mt-0.5">{t('cart.inCart', 'In Cart')}</span>
+                  </div>
+                  <button 
+                    onClick={() => updateQuantity(product.id, inCart.quantity + 1)}
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-rose-500 text-white shadow-lg shadow-rose-500/20 hover:scale-[1.08] active:scale-95 transition-all"
+                  >
+                    <span className="text-2xl font-black">+</span>
+                  </button>
                 </div>
+              ) : (
                 <button 
-                  onClick={() => updateQuantity(product.id, inCart.quantity + 1)}
-                  className="w-14 h-14 flex items-center justify-center rounded-2xl bg-rose-500 text-white shadow-xl shadow-rose-500/30 hover:scale-110 active:scale-95 transition-all"
+                  onClick={() => addToCart(product)}
+                  className="w-full h-14 rounded-2xl flex items-center justify-center gap-3 text-white text-base font-black shadow-lg shadow-emerald-500/15 bg-gradient-to-br from-emerald-500 to-emerald-600 hover:scale-[1.01] active:scale-[0.99] transition-all"
                 >
-                  <span className="text-3xl font-black">+</span>
+                  <ShoppingCart className="w-5 h-5" strokeWidth={3} />
+                  <span>{t('product.add', 'Add to Cart')}</span>
                 </button>
-              </div>
-            ) : (
-              <button 
-                onClick={() => addToCart(product)}
-                className="flex-1 py-5 rounded-3xl flex items-center justify-center gap-4 text-white text-xl font-black shadow-2xl shadow-emerald-500/40 bg-gradient-to-br from-emerald-500 to-emerald-600 hover:scale-[1.02] active:scale-[0.98] transition-all"
-              >
-                <ShoppingCart className="w-7 h-7" strokeWidth={3} />
-                <span>{t('product.add', 'Add')} · ₹{product.price}</span>
-              </button>
-            )}
-            <button className="p-4 rounded-2xl bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-300 transition-colors">
-              <Share2 className="w-6 h-6" />
+              )}
+            </div>
+
+            {/* Buy Now section */}
+            <button 
+              onClick={handleBuyNow}
+              className="w-full sm:flex-1 h-14 rounded-2xl flex items-center justify-center gap-2.5 text-white text-base font-black shadow-lg shadow-orange-500/25 bg-gradient-to-br from-amber-500 to-orange-600 hover:scale-[1.01] active:scale-[0.99] transition-all"
+            >
+              <Zap className="w-5 h-5 text-white fill-current animate-pulse" />
+              <span>Buy Now</span>
+            </button>
+
+            {/* Share action */}
+            <button className="hidden sm:inline-flex p-4 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors h-14 w-14 items-center justify-center shrink-0">
+              <Share2 className="w-5 h-5" />
             </button>
           </div>
         </div>

@@ -11,5 +11,6 @@ router.get('/me', protect, authController.getMe);
 router.put('/me', protect, authController.updateMe);
 router.post('/me/addresses', protect, authController.addAddress);
 router.delete('/me/addresses/:addressId', protect, authController.deleteAddress);
+router.get('/delivery-staff', protect, authController.getDeliveryStaff);
 
 module.exports = router;

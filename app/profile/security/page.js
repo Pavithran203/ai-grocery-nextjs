@@ -13,8 +13,10 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function SecurityPage() {
+  const { t } = useTranslation();
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -28,8 +30,8 @@ export default function SecurityPage() {
   return (
     <div className="space-y-8 animate-fadeIn">
       <div>
-        <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter mb-1">Security Settings</h1>
-        <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Keep your account protected</p>
+        <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter mb-1">{t('profile.security.title')}</h1>
+        <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">{t('profile.security.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -42,12 +44,12 @@ export default function SecurityPage() {
               <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600">
                 <Lock className="w-5 h-5" />
               </div>
-              Change Password
+              {t('profile.security.changePassword')}
             </h2>
 
             <div className="space-y-4 max-w-md">
               <div className="relative">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 mb-1 block">Current Password</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 mb-1 block">{t('profile.security.currentPassword')}</label>
                 <input 
                   type={showCurrent ? "text" : "password"} 
                   className="checkout-input pr-12" 
@@ -58,7 +60,7 @@ export default function SecurityPage() {
                 </button>
               </div>
               <div className="relative">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 mb-1 block">New Password</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 mb-1 block">{t('profile.security.newPassword')}</label>
                 <input 
                   type={showNew ? "text" : "password"} 
                   className="checkout-input pr-12" 
@@ -69,7 +71,7 @@ export default function SecurityPage() {
                 </button>
               </div>
               <div className="relative">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 mb-1 block">Confirm New Password</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 mb-1 block">{t('profile.security.confirmPassword')}</label>
                 <input 
                   type={showConfirm ? "text" : "password"} 
                   className="checkout-input pr-12" 
@@ -80,7 +82,7 @@ export default function SecurityPage() {
                 </button>
               </div>
               <button className="w-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-98 transition-all mt-4">
-                Update Password
+                {t('profile.security.updatePassword')}
               </button>
             </div>
           </div>
@@ -93,8 +95,8 @@ export default function SecurityPage() {
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tighter">Two-Factor Authentication</h2>
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Extra layer of security</p>
+                  <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tighter">{t('profile.security.twoFactor')}</h2>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">{t('profile.security.extraLayer')}</p>
                 </div>
               </div>
               <div className="w-12 h-6 bg-gray-100 dark:bg-gray-800 rounded-full relative cursor-pointer">
@@ -108,9 +110,9 @@ export default function SecurityPage() {
                   <Smartphone size={20} />
                 </div>
                 <div>
-                  <h3 className="font-black text-xs uppercase tracking-widest text-gray-800 dark:text-gray-100">SMS Verification</h3>
-                  <p className="text-[10px] font-bold text-gray-400 mt-1">Codes sent via text message</p>
-                  <button className="text-[10px] font-black text-emerald-600 mt-2 hover:underline uppercase tracking-widest">Configure</button>
+                  <h3 className="font-black text-xs uppercase tracking-widest text-gray-800 dark:text-gray-100">{t('profile.security.smsVerification')}</h3>
+                  <p className="text-[10px] font-bold text-gray-400 mt-1">{t('profile.security.smsDesc')}</p>
+                  <button className="text-[10px] font-black text-emerald-600 mt-2 hover:underline uppercase tracking-widest">{t('profile.security.configure')}</button>
                 </div>
               </div>
               <div className="p-4 rounded-2xl border-2 border-gray-50 dark:border-gray-800 flex items-start gap-4">
@@ -118,9 +120,9 @@ export default function SecurityPage() {
                   <Fingerprint size={20} />
                 </div>
                 <div>
-                  <h3 className="font-black text-xs uppercase tracking-widest text-gray-800 dark:text-gray-100">Biometric Login</h3>
-                  <p className="text-[10px] font-bold text-gray-400 mt-1">Use FaceID or TouchID</p>
-                  <span className="text-[10px] font-black text-gray-300 mt-2 uppercase tracking-widest">App Only</span>
+                  <h3 className="font-black text-xs uppercase tracking-widest text-gray-800 dark:text-gray-100">{t('profile.security.biometric')}</h3>
+                  <p className="text-[10px] font-bold text-gray-400 mt-1">{t('profile.security.biometricDesc')}</p>
+                  <span className="text-[10px] font-black text-gray-300 mt-2 uppercase tracking-widest">{t('profile.security.appOnly')}</span>
                 </div>
               </div>
             </div>
@@ -133,7 +135,7 @@ export default function SecurityPage() {
           <div className="bg-white dark:bg-gray-900 rounded-[32px] border border-gray-100 dark:border-gray-800 shadow-sm p-8">
             <h2 className="text-sm font-black text-gray-900 dark:text-white tracking-widest uppercase mb-6 flex items-center gap-2">
               <History className="w-4 h-4 text-gray-400" />
-              Active Sessions
+              {t('profile.security.activeSessions')}
             </h2>
             <div className="space-y-4">
               {activeSessions.map((session) => (
@@ -153,7 +155,7 @@ export default function SecurityPage() {
                 </div>
               ))}
               <button className="w-full text-center py-3 text-[10px] font-black text-gray-400 hover:text-rose-500 uppercase tracking-widest border-t border-gray-50 dark:border-gray-800 mt-4 transition-colors">
-                Log out all other devices
+                {t('profile.security.logoutOthers')}
               </button>
             </div>
           </div>
@@ -162,13 +164,13 @@ export default function SecurityPage() {
           <div className="bg-rose-50/50 dark:bg-rose-950/10 rounded-[32px] border border-rose-100 dark:border-rose-900/30 p-8">
             <h2 className="text-sm font-black text-rose-600 tracking-widest uppercase mb-4 flex items-center gap-2">
               <AlertCircle className="w-4 h-4" />
-              Danger Zone
+              {t('profile.security.dangerZone')}
             </h2>
             <p className="text-[10px] font-bold text-rose-800/60 dark:text-rose-400/60 uppercase tracking-tighter leading-normal mb-6">
-              Deleting your account will permanently remove all your order history, saved addresses, and loyalty points. This action cannot be undone.
+              {t('profile.security.dangerDesc')}
             </p>
             <button className="w-full py-4 border-2 border-rose-200 dark:border-rose-900/50 text-rose-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all shadow-sm">
-              Delete Account
+              {t('profile.security.deleteAccount')}
             </button>
           </div>
         </div>

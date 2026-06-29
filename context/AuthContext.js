@@ -2,6 +2,16 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, setAuthToken } from '@/services/api';
+import { 
+  deriveMasterKey, 
+  generateRandomSalt, 
+  arrayBufferToBase64, 
+  base64ToArrayBuffer,
+  generateDeliveryKeyPair,
+  exportPublicKey,
+  wrapPrivateKey,
+  unwrapPrivateKey
+} from '@/services/e2ee';
 
 const AuthContext = createContext();
 
@@ -11,10 +21,12 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [masterKey, setMasterKey] = useState(null);
+  const [deliveryPrivateKey, setDeliveryPrivateKey] = useState(null);
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
   const router = useRouter();
 
-  // Load saved auth on mount
+  // Load saved auth and keys on mount
   useEffect(() => {
     const savedToken = localStorage.getItem('nearmart_token') || sessionStorage.getItem('nearmart_token');
     const savedUser = localStorage.getItem('nearmart_user') || sessionStorage.getItem('nearmart_user');
@@ -22,8 +34,34 @@ export const AuthProvider = ({ children }) => {
     if (savedToken && savedUser) {
       try {
         setToken(savedToken);
-        setUser(JSON.parse(savedUser));
-        setAuthToken(savedToken); // Set it in api service
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
+        setAuthToken(savedToken);
+
+        // Load E2EE key from sessionStorage if present
+        const sessionKeyBase64 = sessionStorage.getItem('nearmart_session_key');
+        if (sessionKeyBase64) {
+          crypto.subtle.importKey(
+            'raw',
+            base64ToArrayBuffer(sessionKeyBase64),
+            { name: 'AES-GCM', length: 256 },
+            false,
+            ['encrypt', 'decrypt', 'wrapKey', 'unwrapKey']
+          ).then(key => {
+            setMasterKey(key);
+
+            // If delivery agent, unwrap and load their RSA private key
+            if (parsedUser.role === 'delivery') {
+              const wrappedPrivateKey = localStorage.getItem(`nearmart_delivery_private_key_wrapped_${parsedUser._id}`);
+              const wrappedPrivateKeyIv = localStorage.getItem(`nearmart_delivery_private_key_iv_${parsedUser._id}`);
+              if (wrappedPrivateKey && wrappedPrivateKeyIv) {
+                unwrapPrivateKey(wrappedPrivateKey, wrappedPrivateKeyIv, key)
+                  .then(privKey => setDeliveryPrivateKey(privKey))
+                  .catch(err => console.error('Failed to unwrap private key:', err));
+              }
+            }
+          }).catch(err => console.error('Failed to import master key:', err));
+        }
       } catch (e) {
         localStorage.removeItem('nearmart_token');
         localStorage.removeItem('nearmart_user');
@@ -37,11 +75,25 @@ export const AuthProvider = ({ children }) => {
   // Register
   const register = async (name, email, password, phone = '') => {
     try {
-      const data = await api.register({ name, email, password, phone });
+      const salt = generateRandomSalt();
+      const key = await deriveMasterKey(password, salt);
+      const rawKey = await crypto.subtle.exportKey('raw', key);
+      const keyBase64 = arrayBufferToBase64(rawKey);
+
+      const data = await api.register({ 
+        name, 
+        email, 
+        password, 
+        phone,
+        encryptionSalt: salt
+      });
+
       if (data.success) {
         setToken(data.token);
         setUser(data.user);
         setAuthToken(data.token);
+        setMasterKey(key);
+        sessionStorage.setItem('nearmart_session_key', keyBase64);
         localStorage.setItem('nearmart_token', data.token);
         localStorage.setItem('nearmart_user', JSON.stringify(data.user));
 
@@ -70,6 +122,50 @@ export const AuthProvider = ({ children }) => {
         setAuthToken(data.token);
         localStorage.setItem('nearmart_token', data.token);
         localStorage.setItem('nearmart_user', JSON.stringify(data.user));
+
+        // Get or generate user encryption salt
+        let salt = data.user.encryptionSalt;
+        if (!salt) {
+          salt = generateRandomSalt();
+          const updatedUser = await api.updateProfile({ encryptionSalt: salt });
+          data.user.encryptionSalt = salt;
+          localStorage.setItem('nearmart_user', JSON.stringify(data.user));
+        }
+
+        // Derive master key
+        const key = await deriveMasterKey(password, salt);
+        setMasterKey(key);
+
+        const rawKey = await crypto.subtle.exportKey('raw', key);
+        sessionStorage.setItem('nearmart_session_key', arrayBufferToBase64(rawKey));
+
+        // If delivery role, generate or load RSA-OAEP keypair
+        if (data.user.role === 'delivery') {
+          let wrappedPrivKey = localStorage.getItem(`nearmart_delivery_private_key_wrapped_${data.user._id}`);
+          let wrappedPrivKeyIv = localStorage.getItem(`nearmart_delivery_private_key_iv_${data.user._id}`);
+
+          if (!wrappedPrivKey || !wrappedPrivKeyIv) {
+            const keyPair = await generateDeliveryKeyPair();
+            const pubKeyBase64 = await exportPublicKey(keyPair.publicKey);
+            
+            // Sync public key to backend
+            await api.updateProfile({ rsaPublicKey: pubKeyBase64 });
+            data.user.rsaPublicKey = pubKeyBase64;
+            localStorage.setItem('nearmart_user', JSON.stringify(data.user));
+
+            // Wrap and save private key locally
+            const wrapResult = await wrapPrivateKey(keyPair.privateKey, key);
+            localStorage.setItem(`nearmart_delivery_private_key_wrapped_${data.user._id}`, wrapResult.ciphertext);
+            localStorage.setItem(`nearmart_delivery_private_key_iv_${data.user._id}`, wrapResult.iv);
+
+            setDeliveryPrivateKey(keyPair.privateKey);
+          } else {
+            // Unwrap existing private key
+            const privKey = await unwrapPrivateKey(wrappedPrivKey, wrappedPrivKeyIv, key);
+            setDeliveryPrivateKey(privKey);
+          }
+        }
+
         return { success: true, user: data.user };
       }
       return { success: false, message: data.message || 'Invalid credentials' };
@@ -83,11 +179,14 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setToken(null);
     setAuthToken(null);
+    setMasterKey(null);
+    setDeliveryPrivateKey(null);
     localStorage.removeItem('nearmart_token');
     localStorage.removeItem('nearmart_user');
     localStorage.removeItem('nearmart-admin-session');
     sessionStorage.removeItem('nearmart_token');
     sessionStorage.removeItem('nearmart_user');
+    sessionStorage.removeItem('nearmart_session_key');
     router.push('/');
   };
 
@@ -198,6 +297,8 @@ export const AuthProvider = ({ children }) => {
       token,
       loading,
       isAuthenticated,
+      masterKey,
+      deliveryPrivateKey,
       login,
       register,
       signup: register,

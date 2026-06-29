@@ -21,7 +21,11 @@ export default function ProductDetailScreen({ route, navigation }) {
   const { trackView } = usePreferences();
   const { t } = useLanguage();
   
-  const inCart = cartItems.find(item => item.id === product.id);
+  const inCart = cartItems.find(item => {
+    const itemDbId = item.dbId || (item.id && typeof item.id === 'string' && item.id.includes('-p') ? item.id.split('-p')[1] : item.id);
+    const prodDbId = product.dbId || (product.id && typeof product.id === 'string' && product.id.includes('-p') ? product.id.split('-p')[1] : product.id);
+    return itemDbId === prodDbId;
+  });
   const isLiked = isInWishlist(product.id);
   const outOfStock = product.stock === 0 || product.inStock === false;
   const isDisabled = outOfStock || !isStoreOpen;

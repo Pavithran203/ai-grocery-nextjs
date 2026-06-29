@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { useStore } from "@/context/StoreContext";
 import { useLocation } from "@/context/LocationContext";
 import { useAddress } from "@/context/AddressContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { api } from "@/services/api";
 import SafeImage from "./SafeImage";
 export default function Navbar() {
@@ -17,6 +18,7 @@ export default function Navbar() {
   const { getCartCount, setIsCartOpen } = useCart();
   const { isAuthenticated, setLoginModalOpen } = useAuth();
   const { t, i18n } = useTranslation();
+  const { changeLanguage } = useLanguage();
   const { selectedStore } = useStore();
   const { locationText, setLocationModalOpen, loading: locationLoading } = useLocation();
   const { getDefaultAddress } = useAddress();
@@ -81,6 +83,9 @@ export default function Navbar() {
 
   const isHome = pathname === "/";
 
+  // Admin portal has its own Topbar & Sidebar — hide the customer Navbar entirely
+  if (pathname.startsWith('/admin')) return null;
+
   const defaultAddr = getDefaultAddress();
   const displayLocation = defaultAddr
     ? [defaultAddr.city, defaultAddr.state].filter(Boolean).join(', ') || defaultAddr.line1
@@ -138,7 +143,7 @@ export default function Navbar() {
             </div>
             <input 
               type="text"
-              placeholder={t('common.searchPlaceholder', 'Search...')}
+              placeholder={t('common.searchPlaceholder', 'Search groceries')}
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -252,13 +257,14 @@ export default function Navbar() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-1 sm:gap-2 lg:gap-4 shrink-0">
-          {/* Language Selector - Always Visible */}
+          {/* Language Selector - Hidden on Admin pages */}
+          {!pathname.startsWith('/admin') && (
           <div className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shrink-0">
             <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 shrink-0" />
             {/* Desktop Language Dropdown */}
             <select 
               value={i18n.language}
-              onChange={(e) => i18n.changeLanguage(e.target.value)}
+              onChange={(e) => changeLanguage(e.target.value)}
               className="hidden sm:block bg-transparent text-xs lg:text-sm font-bold text-gray-700 dark:text-gray-300 focus:outline-none cursor-pointer pr-1"
             >
               <option value="en" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white">English</option>
@@ -271,7 +277,7 @@ export default function Navbar() {
             {/* Mobile Language Dropdown */}
             <select 
               value={i18n.language}
-              onChange={(e) => i18n.changeLanguage(e.target.value)}
+              onChange={(e) => changeLanguage(e.target.value)}
               className="block sm:hidden bg-transparent text-[10px] font-bold text-gray-700 dark:text-gray-300 focus:outline-none cursor-pointer pr-0.5 uppercase"
             >
               <option value="en" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white">EN</option>
@@ -282,6 +288,7 @@ export default function Navbar() {
               <option value="hi" className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white">HI</option>
             </select>
           </div>
+          )}
 
           {!isAuthenticated ? (
             <button 

@@ -22,7 +22,11 @@ function ProductCard({ product, navigation, campaignDiscount, isDeliverable = tr
   
   const [showLoginModal, setShowLoginModal] = React.useState(false);
 
-  const inCart = cartItems.find(item => item.id === product.id);
+  const inCart = cartItems.find(item => {
+    const itemDbId = item.dbId || (item.id && typeof item.id === 'string' && item.id.includes('-p') ? item.id.split('-p')[1] : item.id);
+    const prodDbId = product.dbId || (product.id && typeof product.id === 'string' && product.id.includes('-p') ? product.id.split('-p')[1] : product.id);
+    return itemDbId === prodDbId;
+  });
   const isLiked = isInWishlist(product.id);
   const quantity = inCart ? inCart.quantity : 0;
   const outOfStock = product.stock === 0 || product.inStock === false;

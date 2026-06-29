@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from './AuthContext';
 import { api } from '@/services/api';
+import { useTranslation } from 'react-i18next';
 
 const CartContext = createContext({
   cartItems: [],
@@ -17,6 +18,12 @@ const CartContext = createContext({
   setCartToast: () => {}
 });
 
+const getBaseId = (id) => {
+  if (!id) return '';
+  const str = String(id);
+  return str.includes('__') ? str.split('__')[1] : str;
+};
+
 export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
@@ -26,6 +33,7 @@ export const CartProvider = ({ children }) => {
   const [cartToast, setCartToast] = useState(null);
   const initializedRef = useRef(false);
   const router = useRouter();
+  const { i18n } = useTranslation();
   
   const { user } = useAuth();
   
@@ -33,6 +41,7 @@ export const CartProvider = ({ children }) => {
   useEffect(() => {
     const fetchCart = async () => {
       setIsCartLoading(true);
+      let items = [];
       if (user && !user.isGuest) {
         try {
           const cart = await api.getCart();
@@ -51,25 +60,57 @@ export const CartProvider = ({ children }) => {
                 sessionStorage.removeItem('ai_grocery_cart');
                 // refetch synced cart
                 const syncedCart = await api.getCart();
-                setCartItems(syncedCart.items.map(i => ({ ...i.product, quantity: i.quantity })));
-                setIsCartLoading(false);
-                initializedRef.current = true;
-                return;
+                items = syncedCart.items.map(i => ({ ...i.product, quantity: i.quantity }));
               }
+            } else {
+              items = cart.items.map(i => ({ ...i.product, quantity: i.quantity }));
             }
-            setCartItems(cart.items.map(i => ({ ...i.product, quantity: i.quantity })));
           }
         } catch (e) {
-          console.error('Failed to fetch cart:', e);
+          if (e.isOffline) {
+            console.warn('Backend is offline, using local cart.');
+            const saved = sessionStorage.getItem('ai_grocery_cart');
+            if (saved) {
+              try {
+                items = JSON.parse(saved);
+              } catch (err) {}
+            }
+          } else {
+            console.error('Failed to fetch cart:', e);
+          }
         }
       } else {
         const saved = sessionStorage.getItem('ai_grocery_cart');
         if (saved) {
             try {
-                setCartItems(JSON.parse(saved));
+                items = JSON.parse(saved);
             } catch(e) {}
         }
       }
+
+      // Sync items with the latest catalog to reflect updated prices/stocks
+      if (items.length > 0) {
+        try {
+          const latestProducts = await api.getProducts();
+          items = items.map(item => {
+            const latest = latestProducts.find(p => getBaseId(p.id) === getBaseId(item.id));
+            if (latest) {
+              return { 
+                ...item, 
+                ...latest, 
+                price: latest.price, 
+                stock: latest.stock, 
+                name: latest.name 
+              };
+            }
+            return item;
+          });
+        } catch (e) {
+          console.warn('Failed to update cart item details from catalog:', e);
+        }
+      }
+
+      setCartItems(items);
       initializedRef.current = true;
       setIsCartLoading(false);
     };
@@ -77,15 +118,38 @@ export const CartProvider = ({ children }) => {
     fetchCart();
   }, [user]);
 
-  // Save to session storage for guests only — only after initial load is done
+  // Save to session storage for all users — acts as local/offline backup
   useEffect(() => {
     if (!initializedRef.current) return;
-    if (!user || user.isGuest) {
-      sessionStorage.setItem('ai_grocery_cart', JSON.stringify(cartItems));
-    }
-  }, [cartItems, user]);
+    sessionStorage.setItem('ai_grocery_cart', JSON.stringify(cartItems));
+  }, [cartItems]);
 
   const addToCart = async (product, quantity = 1) => {
+    // Validate stock limits locally first
+    const baseId = getBaseId(product.id);
+    const existing = cartItems.find(item => getBaseId(item.id) === baseId);
+    const currentQty = existing ? existing.quantity : 0;
+    const newQty = currentQty + quantity;
+
+    let currentStock = product.stock;
+    try {
+      const latestProducts = await api.getProducts();
+      const latest = latestProducts.find(p => getBaseId(p.id) === baseId);
+      if (latest) {
+        currentStock = latest.stock;
+      }
+    } catch (e) {
+      console.warn('Failed to fetch latest stock in addToCart, using cached stock');
+    }
+
+    if (currentStock !== undefined && currentStock !== null) {
+      if (newQty > currentStock) {
+        const prodName = product[`name_${i18n?.language || 'en'}`] || product.name;
+        alert(`Sorry, only ${currentStock} unit(s) of "${prodName}" are available in stock. You already have ${currentQty} in your cart.`);
+        return;
+      }
+    }
+
     if (user && !user.isGuest) {
       setIsCartLoading(true);
       try {
@@ -95,20 +159,24 @@ export const CartProvider = ({ children }) => {
         } else {
           // Backend returned no items — fall back to local add
           setCartItems(prev => {
-            const existing = prev.find(item => item.id === product.id);
+            const existing = prev.find(item => getBaseId(item.id) === baseId);
             if (existing) {
-              return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item);
+              return prev.map(item => getBaseId(item.id) === baseId ? { ...item, quantity: item.quantity + quantity } : item);
             }
             return [...prev, { ...product, quantity }];
           });
         }
       } catch (e) {
-        console.error('Failed to add to cart via API, falling back to local cart:', e);
+        if (e.isOffline) {
+          console.warn('Backend is offline, adding product to local cart:', product?.name);
+        } else {
+          console.error('Failed to add to cart via API, falling back to local cart:', e);
+        }
         // Fallback: add locally so the user isn't stuck
         setCartItems(prev => {
-          const existing = prev.find(item => item.id === product.id);
+          const existing = prev.find(item => getBaseId(item.id) === baseId);
           if (existing) {
-            return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item);
+            return prev.map(item => getBaseId(item.id) === baseId ? { ...item, quantity: item.quantity + quantity } : item);
           }
           return [...prev, { ...product, quantity }];
         });
@@ -116,9 +184,9 @@ export const CartProvider = ({ children }) => {
       setIsCartLoading(false);
     } else {
       setCartItems(prev => {
-        const existing = prev.find(item => item.id === product.id);
+        const existing = prev.find(item => getBaseId(item.id) === baseId);
         if (existing) {
-          return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item);
+          return prev.map(item => getBaseId(item.id) === baseId ? { ...item, quantity: item.quantity + quantity } : item);
         }
         return [...prev, { ...product, quantity }];
       });
@@ -129,6 +197,7 @@ export const CartProvider = ({ children }) => {
   };
 
   const removeFromCart = async (id) => {
+    const baseId = getBaseId(id);
     if (user && !user.isGuest) {
       setIsCartLoading(true);
       try {
@@ -137,21 +206,48 @@ export const CartProvider = ({ children }) => {
           setCartItems(updatedCart.items.map(i => ({ ...i.product, quantity: i.quantity })));
         } else {
           // Backend returned no items or product not found — remove locally
-          setCartItems(prev => prev.filter(item => item.id !== id));
+          setCartItems(prev => prev.filter(item => getBaseId(item.id) !== baseId));
         }
       } catch (e) {
-        console.error('Failed to remove from cart via API, falling back to local:', e);
-        setCartItems(prev => prev.filter(item => item.id !== id));
+        if (e.isOffline) {
+          console.warn('Backend is offline, removing product from local cart.');
+        } else {
+          console.error('Failed to remove from cart via API, falling back to local:', e);
+        }
+        setCartItems(prev => prev.filter(item => getBaseId(item.id) !== baseId));
       }
       setIsCartLoading(false);
     } else {
-      setCartItems(prev => prev.filter(item => item.id !== id));
+      setCartItems(prev => prev.filter(item => getBaseId(item.id) !== baseId));
     }
   };
 
   const updateQuantity = async (id, quantity) => {
     if (quantity < 1) return removeFromCart(id);
     
+    // Validate stock limits locally first
+    const baseId = getBaseId(id);
+    const item = cartItems.find(i => getBaseId(i.id) === baseId);
+    
+    let currentStock = item ? item.stock : undefined;
+    try {
+      const latestProducts = await api.getProducts();
+      const latest = latestProducts.find(p => getBaseId(p.id) === baseId);
+      if (latest) {
+        currentStock = latest.stock;
+      }
+    } catch (e) {
+      console.warn('Failed to fetch latest stock in updateQuantity, using cached stock');
+    }
+
+    if (currentStock !== undefined && currentStock !== null) {
+      if (quantity > currentStock) {
+        const itemName = item[`name_${i18n?.language || 'en'}`] || item.name;
+        alert(`Sorry, only ${currentStock} unit(s) of "${itemName}" are available in stock.`);
+        return;
+      }
+    }
+
     if (user && !user.isGuest) {
       setIsCartLoading(true);
       try {
@@ -160,15 +256,19 @@ export const CartProvider = ({ children }) => {
           setCartItems(updatedCart.items.map(i => ({ ...i.product, quantity: i.quantity })));
         } else {
           // Backend didn't return items — update locally
-          setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity } : item));
+          setCartItems(prev => prev.map(item => getBaseId(item.id) === baseId ? { ...item, quantity } : item));
         }
       } catch (e) {
-        console.error('Failed to update quantity via API, falling back to local:', e);
-        setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity } : item));
+        if (e.isOffline) {
+          console.warn('Backend is offline, updating product in local cart.');
+        } else {
+          console.error('Failed to update quantity via API, falling back to local:', e);
+        }
+        setCartItems(prev => prev.map(item => getBaseId(item.id) === baseId ? { ...item, quantity } : item));
       }
       setIsCartLoading(false);
     } else {
-      setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity } : item));
+      setCartItems(prev => prev.map(item => getBaseId(item.id) === baseId ? { ...item, quantity } : item));
     }
   };
 
@@ -179,7 +279,11 @@ export const CartProvider = ({ children }) => {
         await api.clearCart();
         setCartItems([]);
       } catch (e) {
-        console.error('Failed to clear cart:', e);
+        if (e.isOffline) {
+          console.warn('Backend is offline, cart cleared locally.');
+        } else {
+          console.error('Failed to clear cart:', e);
+        }
       }
       setIsCartLoading(false);
     } else {

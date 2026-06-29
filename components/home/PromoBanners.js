@@ -99,6 +99,18 @@ export default function PromoBanners() {
       : t('home.kitchenEssentials', 'Kitchen Essentials');
   };
 
+  const getBannerSubtitle = (item) => {
+    if (item.type === 'promo') {
+      return item.id === 'free-delivery-promo'
+        ? t('home.freeDeliverySubtitle', 'On all orders above ₹999 from local stores 🎉')
+        : t('home.bestLocalStoresSubtitle', 'Discover trusted Kirana stores near you');
+    }
+
+    return item.title === 'Monthly Savings'
+      ? t('home.monthlySavingsSubtitle', 'Save big on your monthly grocery shopping!')
+      : t('home.kitchenEssentialsSubtitle', 'Everything your kitchen needs, discounted!');
+  };
+
   const getBannerCta = (item) => {
     if (item.type === 'promo') {
       return item.id === 'free-delivery-promo'
@@ -158,7 +170,7 @@ export default function PromoBanners() {
                     {getBannerTitle(item)}
                   </h2>
                   <p className="text-lg text-white/90 font-bold mb-6 max-w-[400px] leading-snug">
-                    {item.subtitle}
+                    {getBannerSubtitle(item)}
                   </p>
                   
                   {!isPromo && (
@@ -172,7 +184,7 @@ export default function PromoBanners() {
                     {!isPromo && (
                       <div className="bg-emerald-500 px-5 py-2.5 rounded-2xl shadow-xl shadow-emerald-500/30 border border-emerald-400/50">
                         <span className="text-xs font-black text-white uppercase tracking-wider">
-                          FLAT {item.discountPercent}% OFF
+                          {t('home.flatDiscount', 'FLAT {{percent}}% OFF', { percent: item.discountPercent })}
                         </span>
                       </div>
                     )}
@@ -192,7 +204,7 @@ export default function PromoBanners() {
                 <div className="hidden lg:block shrink-0">
                   <div className="relative w-64 h-64 rounded-[48px] overflow-hidden border-[12px] border-white/10 shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500" style={{ backgroundColor: colorEnd }}>
                     <SafeImage 
-                      src={item.bannerImage || 'https://res.cloudinary.com/demo/image/upload/c_fill,g_auto,w_800,h_400,q_auto,f_auto/samples/food/fish-vegetables.jpg'} 
+                      src={item.bannerImage || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80'} 
                       alt={item.title} 
                       type="banner"
                       componentName="PromoBanners"

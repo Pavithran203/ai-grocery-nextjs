@@ -36,16 +36,27 @@ export default function StoresPage() {
   
   const [activeFilters, setActiveFilters] = useState([]);
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [synced, setSynced] = useState(false);
 
   const coords = userCoords || { latitude: 13.0071, longitude: 80.2200 };
 
+  React.useEffect(() => {
+    let active = true;
+    const performSync = async () => {
+      await storeService.syncWithBackend(coords.latitude, coords.longitude);
+      if (active) setSynced(prev => !prev);
+    };
+    performSync();
+    return () => { active = false; };
+  }, [coords.latitude, coords.longitude]);
+
   const nearbyStores = useMemo(() => {
     return storeService.getNearbyStores(coords.latitude, coords.longitude, 100);
-  }, [coords.latitude, coords.longitude]);
+  }, [coords.latitude, coords.longitude, synced]);
 
   const allStores = useMemo(() => {
     return storeService.getAllStores(coords.latitude, coords.longitude);
-  }, [coords.latitude, coords.longitude]);
+  }, [coords.latitude, coords.longitude, synced]);
 
   const activeStores = filterMode === 'nearby' ? nearbyStores : filterMode === 'zip' ? zipStores : allStores;
 
@@ -91,7 +102,9 @@ export default function StoresPage() {
              filterMode === 'zip' ? t('stores.byZip', 'Stores by ZIP') : 
              t('home.nearbyStores', 'Nearby Stores')}
           </h1>
-          <p className="text-sm font-medium text-gray-500 mt-1">Discover trusted local grocery stores</p>
+          <p className="text-sm font-medium text-gray-500 mt-1">
+            {t('stores.discoverTrusted', 'Discover trusted local grocery stores')}
+          </p>
         </div>
       </div>
 
@@ -100,7 +113,7 @@ export default function StoresPage() {
         <Search size={18} className="text-gray-400 mr-3" />
         <input 
           type="text"
-          placeholder="Search stores, areas..."
+          placeholder={t('stores.searchPlaceholder', 'Search stores, areas...')}
           className="flex-1 bg-transparent border-none outline-none text-gray-900 dark:text-white font-medium"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -119,7 +132,7 @@ export default function StoresPage() {
           className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-bold text-sm transition-all ${filterMode === 'nearby' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
         >
           {requesting ? <Loader2 size={16} className="animate-spin" /> : <Navigation size={16} />}
-          Nearby
+          {t('stores.nearbyBtn', 'Nearby')}
         </button>
         <button 
           onClick={() => setFilterMode('zip')}
@@ -144,7 +157,7 @@ export default function StoresPage() {
             <MapPin size={18} className="text-emerald-500 mr-3" />
             <input 
               type="text"
-              placeholder="Enter 6-digit PIN code"
+              placeholder={t('stores.enterPinPlaceholder', 'Enter 6-digit PIN code')}
               className="flex-1 bg-transparent border-none outline-none text-gray-900 dark:text-white font-bold"
               value={zipInput}
               onChange={(e) => setZipInput(e.target.value.replace(/\D/g, ''))}
@@ -212,7 +225,7 @@ export default function StoresPage() {
 
                 <h3 className="text-xl font-black text-gray-900 dark:text-white truncate mb-1">{getLocalizedStoreName(store)}</h3>
                 <div className="flex items-center gap-2 mb-4">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t[store.storeType] || store.storeType}</span>
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('home.' + store.storeType, store.storeType)}</span>
                   <span className="w-1 h-1 rounded-full bg-gray-300"></span>
                   <div className="flex items-center gap-1">
                     <Star size={12} className="text-amber-500 fill-amber-500" />
@@ -252,43 +265,43 @@ export default function StoresPage() {
           {activeFilters.length > 0 ? (
             <>
               <span className="text-6xl mb-4">🔍</span>
-              <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">No stores match filters</h3>
-              <p className="text-gray-500 mb-8 max-w-sm">Try removing some filters to see more stores.</p>
+              <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">{t('stores.noStoresFilters', 'No stores match filters')}</h3>
+              <p className="text-gray-500 mb-8 max-w-sm">{t('stores.noStoresFiltersDesc', 'Try removing some filters to see more stores.')}</p>
               <button 
                 onClick={clearFilters}
                 className="bg-emerald-500 text-white px-8 py-3.5 rounded-2xl font-black shadow-lg shadow-emerald-500/30 hover:brightness-110 transition-all"
               >
-                Clear All Filters
+                {t('stores.clearAllFilters', 'Clear All Filters')}
               </button>
             </>
           ) : filterMode === 'nearby' && !hasLocation ? (
             <>
               <span className="text-6xl mb-4">📍</span>
-              <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">Location access needed</h3>
+              <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">{t('stores.locationAccessNeeded', 'Location access needed')}</h3>
               <p className="text-gray-500 mb-8 max-w-sm">
                 {permissionStatus === 'denied' 
-                  ? 'Location was denied. Please enable it in your browser settings, or use ZIP code.' 
-                  : 'Allow location access to discover nearby stores.'}
+                  ? t('stores.locationDenied', 'Location was denied. Please enable it in your browser settings, or use ZIP code.') 
+                  : t('stores.allowLocation', 'Allow location access to discover nearby stores.')}
               </p>
               <button 
                 onClick={handleNearbyPress}
                 className="flex items-center gap-2 bg-emerald-500 text-white px-8 py-3.5 rounded-2xl font-black shadow-lg shadow-emerald-500/30 hover:brightness-110 transition-all"
               >
                 {requesting ? <Loader2 size={18} className="animate-spin" /> : <LocateFixed size={18} />}
-                Enable Location
+                {t('stores.enableLocation', 'Enable Location')}
               </button>
             </>
           ) : filterMode === 'zip' && zipInput.length < 5 ? (
             <>
               <span className="text-6xl mb-4">🔍</span>
-              <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">Enter a ZIP code</h3>
-              <p className="text-gray-500 max-w-sm">Type a 6-digit PIN code above and tap Find Stores to see local options.</p>
+              <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">{t('stores.enterZipCode', 'Enter a ZIP code')}</h3>
+              <p className="text-gray-500 max-w-sm">{t('stores.enterZipCodeDesc', 'Type a 6-digit PIN code above and tap Find Stores to see local options.')}</p>
             </>
           ) : (
             <>
               <span className="text-6xl mb-4">🏪</span>
-              <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">No stores found</h3>
-              <p className="text-gray-500 max-w-sm">Try a different ZIP code or switch to Nearby mode.</p>
+              <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">{t('stores.noStoresFound', 'No stores found')}</h3>
+              <p className="text-gray-500 max-w-sm">{t('stores.noStoresFoundDesc', 'Try a different ZIP code or switch to Nearby mode.')}</p>
             </>
           )}
         </div>

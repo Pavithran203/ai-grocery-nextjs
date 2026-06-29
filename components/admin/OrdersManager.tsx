@@ -7,7 +7,7 @@ import {
   Truck, Clock3, CheckCircle2, ShoppingBag, FileText,
 } from 'lucide-react';
 import { adminFetch } from '@/lib/admin/adminFetch';
-import { scanAllCustomerOrders, updateAdminOrderStatus, type CustomerOrder } from '@/lib/admin/customerOrderStore';
+import { useAuth } from '@/context/AuthContext';
 
 const fetchOrders = async () => {
   const res = await adminFetch('/api/admin/orders');
@@ -62,6 +62,70 @@ function getNextStatuses(current: string): { status: string; label: string; vari
 function OrderDetailModal({ order, onClose }: { order: any; onClose: () => void }) {
   const queryClient = useQueryClient();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const { deliveryPrivateKey } = useAuth();
+  const [decryptedDetails, setDecryptedDetails] = useState<{ address: string; notes: string; isDecrypted: boolean } | null>(null);
+
+  useEffect(() => {
+    const decryptOrder = async () => {
+      if (!order) {
+        setDecryptedDetails(null);
+        return;
+      }
+
+      // Check if E2EE parameters and deliveryPrivateKey are available
+      if (order.encryptedAddress && order.deliveryKeyBlob && deliveryPrivateKey) {
+        try {
+          const { unwrapOrderKeyWithRsa, decryptSymmetric } = await import('@/services/e2ee');
+          
+          // 1. Unwrap the order symmetric key using private RSA key of delivery partner
+          const orderKey = await unwrapOrderKeyWithRsa(
+            order.deliveryKeyBlob.ciphertext,
+            deliveryPrivateKey
+          );
+          
+          // 2. Decrypt address
+          const decryptedAddrObj = await decryptSymmetric(
+            order.encryptedAddress.ciphertext,
+            order.encryptedAddress.iv,
+            orderKey
+          );
+          
+          // 3. Decrypt notes/instructions if present
+          let decryptedNotesObj = null;
+          if (order.encryptedNotes) {
+            decryptedNotesObj = await decryptSymmetric(
+              order.encryptedNotes.ciphertext,
+              order.encryptedNotes.iv,
+              orderKey
+            );
+          }
+          
+          const formattedAddress = `${decryptedAddrObj.line1}, ${decryptedAddrObj.line2}, ${decryptedAddrObj.pincode}`;
+          
+          setDecryptedDetails({
+            address: formattedAddress,
+            notes: decryptedNotesObj ? decryptedNotesObj.notes : order.notes,
+            isDecrypted: true
+          });
+        } catch (err) {
+          console.error("Failed to decrypt E2EE order details:", err);
+          setDecryptedDetails({
+            address: "🔒 Decryption Failed (Access Unauthorized)",
+            notes: "🔒 Decryption Failed",
+            isDecrypted: false
+          });
+        }
+      } else {
+        // Fallback to plain details
+        setDecryptedDetails({
+          address: order.address,
+          notes: order.notes || '',
+          isDecrypted: false
+        });
+      }
+    };
+    decryptOrder();
+  }, [order, deliveryPrivateKey]);
 
   const mutation = useMutation({
     mutationFn: updateOrderStatus,
@@ -73,8 +137,6 @@ function OrderDetailModal({ order, onClose }: { order: any; onClose: () => void 
   const handleStatusChange = async (newStatus: string) => {
     setActionLoading(newStatus);
     try {
-      // Update local storage first if it's a customer order
-      updateAdminOrderStatus(order.id, newStatus);
       await mutation.mutateAsync({ id: order.id, status: newStatus });
     } finally {
       setActionLoading(null);
@@ -116,15 +178,27 @@ function OrderDetailModal({ order, onClose }: { order: any; onClose: () => void 
                 <p className="flex items-center gap-2"><Mail className="h-3.5 w-3.5" /> {order.email}</p>
                 <p className="flex items-center gap-2"><Phone className="h-3.5 w-3.5" /> {order.phone}</p>
               </div>
-              {order.notes && (
-                <p className="mt-3 rounded-xl bg-amber-50 px-4 py-2 text-sm text-amber-800">{order.notes}</p>
+              {decryptedDetails?.notes && (
+                <div className="mt-3 rounded-xl bg-amber-50 px-4 py-2 text-sm text-amber-800 flex items-center justify-between">
+                  <span>{decryptedDetails.notes}</span>
+                  {decryptedDetails.isDecrypted && (
+                    <span className="text-[9px] bg-emerald-100 text-emerald-805 font-black px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-0.5 shrink-0 ml-2">
+                      <ShieldCheck className="h-3 w-3 inline text-emerald-600" /> E2EE
+                    </span>
+                  )}
+                </div>
               )}
             </div>
             <div className="rounded-2xl border border-slate-200 p-5">
-              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.25em] text-slate-500">
-                <MapPin className="h-3.5 w-3.5" /> Delivery Address
+              <div className="flex items-center justify-between text-xs font-black uppercase tracking-[0.25em] text-slate-500">
+                <span className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5" /> Delivery Address</span>
+                {decryptedDetails?.isDecrypted && (
+                  <span className="text-[9px] bg-emerald-100 text-emerald-800 font-black px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-0.5">
+                    <ShieldCheck className="h-3.5 w-3.5 inline text-emerald-600" /> E2EE Secured
+                  </span>
+                )}
               </div>
-              <p className="mt-3 text-sm text-slate-700">{order.address}</p>
+              <p className="mt-3 text-sm text-slate-700">{decryptedDetails ? decryptedDetails.address : order.address}</p>
               <div className="mt-3 flex items-center gap-2 text-xs font-black uppercase tracking-[0.25em] text-slate-500">
                 <CreditCard className="h-3.5 w-3.5" /> {order.paymentMethod}
               </div>
@@ -254,15 +328,6 @@ export default function OrdersManager() {
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
 
-  // Load real customer orders from localStorage
-  const [customerOrders, setCustomerOrders] = useState<CustomerOrder[]>([]);
-  useEffect(() => {
-    const load = () => setCustomerOrders(scanAllCustomerOrders());
-    load();
-    const interval = setInterval(load, 10000);
-    return () => clearInterval(interval);
-  }, []);
-
   const mutation = useMutation({
     mutationFn: updateOrderStatus,
     onSuccess: () => {
@@ -273,16 +338,9 @@ export default function OrdersManager() {
     },
   });
 
-  // Merge mock orders + real customer orders (deduplicated)
   const orders = useMemo(() => {
-    const mockOrders = data?.orders || [];
-    const seenIds = new Set<string>();
-    const merged: any[] = [];
-    customerOrders.forEach(o => { const id = o.id || o._id || ''; if (id && !seenIds.has(id)) { seenIds.add(id); merged.push(o); } });
-    mockOrders.forEach((o: any) => { const id = o.id || o._id || ''; if (id && !seenIds.has(id)) { seenIds.add(id); merged.push(o); } });
-    merged.sort((a, b) => new Date(b.placedAt || b.createdAt || 0).getTime() - new Date(a.placedAt || a.createdAt || 0).getTime());
-    return merged;
-  }, [data, customerOrders]);
+    return data?.orders || [];
+  }, [data]);
 
   const pendingCount = useMemo(() => orders.filter((o: any) => o.status === 'Pending').length, [orders]);
   const cancelledCount = useMemo(() => orders.filter((o: any) => o.status === 'Cancelled').length, [orders]);
@@ -306,11 +364,7 @@ export default function OrdersManager() {
 
   const handleQuickAction = (e: React.MouseEvent, order: any, status: string) => {
     e.stopPropagation();
-    // Try updating in the customer order store too
-    updateAdminOrderStatus(order.id, status);
     mutation.mutate({ id: order.id, status });
-    // Refresh customer orders
-    setCustomerOrders(scanAllCustomerOrders());
   };
 
   return (
@@ -493,10 +547,7 @@ export default function OrdersManager() {
       {selectedOrder && (
         <OrderDetailModal 
           order={selectedOrder} 
-          onClose={() => {
-            setSelectedOrder(null);
-            setCustomerOrders(scanAllCustomerOrders());
-          }} 
+          onClose={() => setSelectedOrder(null)} 
         />
       )}
     </div>

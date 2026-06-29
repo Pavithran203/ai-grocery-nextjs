@@ -1,5 +1,5 @@
 "use client";
-import { Zap, ShieldCheck, Clock, RotateCcw, Sparkles } from "lucide-react";
+import { Zap, ShieldCheck, Clock, RotateCcw, Sparkles, Tag } from "lucide-react";
 import Link from "next/link";
 import AddToCartButton from "@/app/product/[id]/AddToCartButton";
 import { useTranslation } from "react-i18next";
@@ -13,24 +13,35 @@ export default function ProductDetailContent({ product, isModal = false }) {
     <div className="flex flex-col lg:flex-row min-h-[500px]">
       {/* Image Section */}
       <div className={`w-full lg:w-[42%] bg-gray-50/30 dark:bg-gray-900/30 p-6 flex items-center justify-center relative border-b lg:border-b-0 lg:border-r border-gray-50 dark:border-gray-900 ${isModal ? 'bg-white dark:bg-gray-950' : ''}`}>
-        <div className="relative w-full aspect-square max-w-[320px] group">
-          <SafeImage 
-            src={product.image_url || product.image} 
-            alt={productName || 'Product Image'} 
-            type="product"
-            entityId={product.id}
-            productName={product.name}
-            componentName="ProductDetailContent"
-            fill
-            sizes="(max-width: 768px) 320px, 320px"
-            className="drop-shadow-2xl transition-transform duration-700 group-hover:scale-105"
-            objectFit="contain"
-          />
+        <div className="relative w-full aspect-square max-w-[320px] group flex items-center justify-center">
+            <SafeImage 
+              src={product.image_url || product.image || product.imageUrl} 
+              alt={productName || 'Product Image'} 
+              type="product"
+              entityId={product.id}
+              productName={product.name}
+              componentName="ProductDetailContent"
+              fill
+              sizes="(max-width: 768px) 320px, 320px"
+              className="drop-shadow-2xl transition-transform duration-700 group-hover:scale-105"
+              objectFit={
+                (product.name?.toLowerCase().includes('flour') || 
+                 product.name?.toLowerCase().includes('atta') || 
+                 product.name?.toLowerCase().includes('mix') || 
+                 product.name?.toLowerCase().includes('ghee') || 
+                 product.name?.toLowerCase().includes('oil') ||
+                 product.name?.toLowerCase().includes('jaggery')) 
+                  ? 'contain' 
+                  : 'cover'
+              }
+            />
           {/* Premium Badge */}
-          <div className="absolute top-0 left-0 z-20 flex items-center gap-1.5 bg-white dark:bg-gray-800 px-3 py-1.5 rounded-xl font-black text-[10px] tracking-widest shadow-xl border border-amber-200 dark:border-amber-900/50 uppercase">
-            <Sparkles className="w-3 h-3 text-amber-500" />
-            <span className="text-amber-600 dark:text-amber-400">{t('product.premiumChoice', 'Premium choice')}</span>
-          </div>
+          {product.rating && parseFloat(product.rating) >= 4.8 && (
+            <div className="absolute top-0 left-0 z-20 flex items-center gap-1.5 bg-white dark:bg-gray-800 px-3 py-1.5 rounded-xl font-black text-[10px] tracking-widest shadow-xl border border-amber-200 dark:border-amber-900/50 uppercase">
+              <Sparkles className="w-3 h-3 text-amber-500" />
+              <span className="text-amber-600 dark:text-amber-400">{t('product.premiumChoice', 'Premium choice')}</span>
+            </div>
+          )}
         </div>
       </div>
 

@@ -12,10 +12,12 @@ import {
   ChevronRight,
   ShieldAlert
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useTranslation } from "react-i18next";
 
 export default function SettingsPage() {
+  const { t } = useTranslation();
   const { language, changeLanguage } = useLanguage();
   const [notifications, setNotifications] = useState({
     orders: true,
@@ -26,13 +28,32 @@ export default function SettingsPage() {
 
   const [darkMode, setDarkMode] = useState(false);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isDark = document.documentElement.classList.contains("dark");
+      setDarkMode(isDark);
+    }
+  }, []);
+
+  const handleThemeToggle = () => {
+    const nextTheme = !darkMode;
+    setDarkMode(nextTheme);
+    if (nextTheme) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  };
+
   const toggleNotif = (key) => setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
 
   return (
     <div className="space-y-8 animate-fadeIn">
       <div>
-        <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter mb-1">Preferences</h1>
-        <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Customize your NearMart experience</p>
+        <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter mb-1">{t('profile.settings.title')}</h1>
+        <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">{t('profile.settings.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -44,7 +65,7 @@ export default function SettingsPage() {
               <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center text-violet-600">
                 <Settings className="w-5 h-5" />
               </div>
-              General Settings
+              {t('profile.settings.general')}
             </h2>
           </div>
           
@@ -56,8 +77,8 @@ export default function SettingsPage() {
                   <Globe size={20} />
                 </div>
                 <div>
-                  <h3 className="font-black text-xs uppercase tracking-widest text-gray-800 dark:text-gray-100">Language</h3>
-                  <p className="text-[10px] font-bold text-gray-400">App display language</p>
+                  <h3 className="font-black text-xs uppercase tracking-widest text-gray-800 dark:text-gray-100">{t('profile.settings.language')}</h3>
+                  <p className="text-[10px] font-bold text-gray-400">{t('profile.settings.langDesc')}</p>
                 </div>
               </div>
               <select 
@@ -70,6 +91,7 @@ export default function SettingsPage() {
                 <option value="తెలుగు">Telugu</option>
                 <option value="ಕನ್ನಡ">Kannada</option>
                 <option value="മലയാളം">Malayalam</option>
+                <option value="हिंदी">Hindi</option>
               </select>
             </div>
 
@@ -80,13 +102,13 @@ export default function SettingsPage() {
                   {darkMode ? <Moon size={20} /> : <Sun size={20} />}
                 </div>
                 <div>
-                  <h3 className="font-black text-xs uppercase tracking-widest text-gray-800 dark:text-gray-100">Appearance</h3>
-                  <p className="text-[10px] font-bold text-gray-400">Dark or Light theme</p>
+                  <h3 className="font-black text-xs uppercase tracking-widest text-gray-800 dark:text-gray-100">{t('profile.settings.appearance')}</h3>
+                  <p className="text-[10px] font-bold text-gray-400">{t('profile.settings.themeDesc')}</p>
                 </div>
               </div>
               <button 
-                onClick={() => setDarkMode(!darkMode)}
-                className="bg-gray-50 dark:bg-gray-800 border-2 border-transparent rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest transition-all hover:border-emerald-500"
+                onClick={handleThemeToggle}
+                className="bg-gray-50 dark:bg-gray-800 border-2 border-transparent rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest transition-all hover:border-emerald-500 cursor-pointer"
               >
                 {darkMode ? 'Dark' : 'Light'}
               </button>
@@ -99,8 +121,8 @@ export default function SettingsPage() {
                   <Volume2 size={20} />
                 </div>
                 <div>
-                  <h3 className="font-black text-xs uppercase tracking-widest text-gray-800 dark:text-gray-100">App Sounds</h3>
-                  <p className="text-[10px] font-bold text-gray-400">Checkout and notification sounds</p>
+                  <h3 className="font-black text-xs uppercase tracking-widest text-gray-800 dark:text-gray-100">{t('profile.settings.sounds')}</h3>
+                  <p className="text-[10px] font-bold text-gray-400">{t('profile.settings.soundsDesc')}</p>
                 </div>
               </div>
               <div className="w-12 h-6 bg-emerald-500 rounded-full relative cursor-pointer">
@@ -117,7 +139,7 @@ export default function SettingsPage() {
               <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-900/30 flex items-center justify-center text-orange-600">
                 <Bell className="w-5 h-5" />
               </div>
-              Notification Center
+              {t('profile.settings.notifCenter')}
             </h2>
           </div>
           
@@ -125,8 +147,8 @@ export default function SettingsPage() {
             {Object.entries(notifications).map(([key, enabled]) => (
               <div key={key} className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-black text-xs uppercase tracking-widest text-gray-800 dark:text-gray-100">{key} Notifications</h3>
-                  <p className="text-[10px] font-bold text-gray-400">Stay updated on your {key}</p>
+                  <h3 className="font-black text-xs uppercase tracking-widest text-gray-800 dark:text-gray-100">{t(`profile.settings.${key}Notif`)}</h3>
+                  <p className="text-[10px] font-bold text-gray-400">{t(`profile.settings.${key}NotifDesc`)}</p>
                 </div>
                 <div 
                   onClick={() => toggleNotif(key)}
@@ -143,24 +165,24 @@ export default function SettingsPage() {
         <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
           <button className="bg-white dark:bg-gray-900 p-6 rounded-[28px] border border-gray-100 dark:border-gray-800 text-left hover:border-emerald-200 transition-all group">
             <HelpCircle className="w-8 h-8 text-blue-500 mb-4 group-hover:scale-110 transition-transform" />
-            <h3 className="font-black text-xs uppercase tracking-widest mb-1">Help Center</h3>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">FAQs, Chat with us</p>
+            <h3 className="font-black text-xs uppercase tracking-widest mb-1">{t('profile.settings.helpCenter')}</h3>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{t('profile.settings.helpDesc')}</p>
           </button>
           <button className="bg-white dark:bg-gray-900 p-6 rounded-[28px] border border-gray-100 dark:border-gray-800 text-left hover:border-emerald-200 transition-all group">
             <FileText className="w-8 h-8 text-gray-400 mb-4 group-hover:scale-110 transition-transform" />
-            <h3 className="font-black text-xs uppercase tracking-widest mb-1">Legal Policies</h3>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Terms, Privacy, Cookies</p>
+            <h3 className="font-black text-xs uppercase tracking-widest mb-1">{t('profile.settings.legalPolicies')}</h3>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{t('profile.settings.legalDesc')}</p>
           </button>
           <button className="bg-white dark:bg-gray-900 p-6 rounded-[28px] border border-gray-100 dark:border-gray-800 text-left hover:border-emerald-200 transition-all group">
             <ShieldAlert className="w-8 h-8 text-rose-500 mb-4 group-hover:scale-110 transition-transform" />
-            <h3 className="font-black text-xs uppercase tracking-widest mb-1">Report Issue</h3>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Bug report, store feedback</p>
+            <h3 className="font-black text-xs uppercase tracking-widest mb-1">{t('profile.settings.reportIssue')}</h3>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{t('profile.settings.reportDesc')}</p>
           </button>
         </div>
       </div>
 
       <div className="text-center pt-8">
-        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">NearMart Web Version 2.4.0</p>
+        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">{t('profile.settings.version')}</p>
       </div>
     </div>
   );

@@ -25,7 +25,7 @@ const protect = async (req, res, next) => {
   }
 
   // --- START DEMO AUTH BYPASS ---
-  if (token.startsWith('demo-token-')) {
+  if (process.env.NODE_ENV !== 'production' && token.startsWith('demo-token-')) {
     const demoUid = token.replace('demo-token-', '');
     let user = await User.findOne({ firebaseUid: demoUid });
     

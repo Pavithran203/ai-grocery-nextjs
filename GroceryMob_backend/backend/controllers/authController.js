@@ -12,7 +12,7 @@ const normalizePhone = (phone) => {
 // This is called AFTER Firebase signup to sync profile
 const register = async (req, res) => {
   try {
-    const { uid, name, email, phone } = req.body;
+    const { uid, name, email, phone, encryptionSalt, rsaPublicKey } = req.body;
     
     if (!uid || !name || !email) {
       return res.status(400).json({ success: false, message: 'Missing required fields.' });
@@ -34,7 +34,9 @@ const register = async (req, res) => {
       name,
       email: normalizedEmail,
       phone: normalizedPhone,
-      isGuest: false
+      isGuest: false,
+      encryptionSalt,
+      rsaPublicKey
     });
 
     // Sync with Customer record
@@ -78,7 +80,7 @@ const getMe = async (req, res) => {
 // ── PUT /api/auth/me ──────────────────────────────────────────
 const updateMe = async (req, res) => {
   try {
-    const allowedUpdates = ['name', 'phone', 'avatar', 'favoriteStores'];
+    const allowedUpdates = ['name', 'phone', 'avatar', 'favoriteStores', 'encryptionSalt', 'rsaPublicKey', 'encryptedPhone', 'role'];
     const updates = {};
     
     Object.keys(req.body).forEach(key => {
@@ -137,10 +139,21 @@ const deleteAddress = async (req, res) => {
   }
 };
 
+// ── GET /api/auth/delivery-staff ──────────────────────────────
+const getDeliveryStaff = async (req, res) => {
+  try {
+    const staff = await User.find({ role: 'delivery' }).select('_id name rsaPublicKey email').lean();
+    res.json({ success: true, staff });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 module.exports = { 
   register, 
   getMe, 
   updateMe, 
   addAddress, 
-  deleteAddress 
+  deleteAddress,
+  getDeliveryStaff
 };

@@ -1,14 +1,43 @@
 "use client";
 
-import { useState } from 'react';
-import { deliveryPartners } from '@/lib/admin/mockData';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { adminFetch } from '@/lib/admin/adminFetch';
 import { MapPin, ShieldCheck, TrendingUp } from 'lucide-react';
 
+const fetchDeliveryPartners = async () => {
+  const res = await adminFetch('/api/admin/delivery-partners');
+  if (!res.ok) throw new Error('Failed to load delivery partners');
+  const data = await res.json();
+  return data.partners || [];
+};
+
+const toggleAvailabilityStatus = async (id: string) => {
+  const res = await adminFetch(`/api/admin/users/${id}/toggle-status`, {
+    method: 'PUT',
+  });
+  if (!res.ok) throw new Error('Failed to toggle partner availability');
+  return res.json();
+};
+
 export default function DeliveryManager() {
-  const [partners, setPartners] = useState(deliveryPartners);
+  const queryClient = useQueryClient();
+  const { data: partners = [], isLoading, error } = useQuery({
+    queryKey: ['adminDeliveryPartners'],
+    queryFn: fetchDeliveryPartners,
+  });
+
+  const mutation = useMutation({
+    mutationFn: toggleAvailabilityStatus,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminDeliveryPartners'] });
+    },
+    onError: (err: any) => {
+      alert(err.message || 'Error toggling availability');
+    }
+  });
 
   const toggleAvailability = (id: string) => {
-    setPartners((current) => current.map((partner) => partner.id === id ? { ...partner, status: partner.status === 'On Duty' ? 'Offline' : 'On Duty' } : partner));
+    mutation.mutate(id);
   };
 
   return (
@@ -25,47 +54,56 @@ export default function DeliveryManager() {
       </section>
 
       <section className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
-        <div className="grid gap-6 lg:grid-cols-2">
-          {partners.map((partner) => (
-            <div key={partner.id} className="rounded-[28px] border border-slate-100 bg-slate-50 p-6">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="font-black text-slate-950">{partner.name}</p>
-                  <p className="mt-1 text-sm text-slate-600">{partner.location}</p>
+        {isLoading ? (
+          <p className="text-sm text-slate-500">Loading delivery partners...</p>
+        ) : error ? (
+          <p className="text-sm text-red-500">Error loading delivery partners.</p>
+        ) : partners.length === 0 ? (
+          <p className="text-sm text-slate-500">No delivery partners found.</p>
+        ) : (
+          <div className="grid gap-6 lg:grid-cols-2">
+            {partners.map((partner: any) => (
+              <div key={partner.id} className="rounded-[28px] border border-slate-100 bg-slate-50 p-6">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-black text-slate-950">{partner.name}</p>
+                    <p className="mt-1 text-sm text-slate-600">{partner.location}</p>
+                  </div>
+                  <span className={`rounded-full px-3 py-2 text-xs font-black uppercase tracking-[0.25em] ${partner.status === 'On Duty' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}`}>
+                    {partner.status}
+                  </span>
                 </div>
-                <span className={`rounded-full px-3 py-2 text-xs font-black uppercase tracking-[0.25em] ${partner.status === 'On Duty' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}`}>
-                  {partner.status}
-                </span>
+                <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-3xl bg-white p-4 text-sm shadow-sm">
+                    <p className="font-black text-slate-950">{partner.completed}</p>
+                    <p className="mt-1 uppercase tracking-[0.2em] text-slate-500">Deliveries</p>
+                  </div>
+                  <div className="rounded-3xl bg-white p-4 text-sm shadow-sm">
+                    <p className="font-black text-slate-950">{partner.rating.toFixed(1)}</p>
+                    <p className="mt-1 uppercase tracking-[0.2em] text-slate-500">Rating</p>
+                  </div>
+                  <div className="rounded-3xl bg-white p-4 text-sm shadow-sm">
+                    <p className="font-black text-slate-950">{partner.status === 'On Duty' ? 'Live' : 'Paused'}</p>
+                    <p className="mt-1 uppercase tracking-[0.2em] text-slate-500">Network</p>
+                  </div>
+                </div>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={() => toggleAvailability(partner.id)}
+                    disabled={mutation.isPending}
+                    className="inline-flex items-center gap-2 rounded-3xl bg-slate-900 px-4 py-3 text-xs font-black uppercase tracking-[0.25em] text-white transition hover:bg-slate-800 disabled:opacity-55"
+                  >
+                    <MapPin className="h-4 w-4" /> {partner.status === 'On Duty' ? 'Take offline' : 'Activate'}
+                  </button>
+                  <button type="button" className="inline-flex items-center gap-2 rounded-3xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-black uppercase tracking-[0.25em] text-emerald-900 transition hover:bg-emerald-100">
+                    <TrendingUp className="h-4 w-4" /> Performance
+                  </button>
+                </div>
               </div>
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-3xl bg-white p-4 text-sm shadow-sm">
-                  <p className="font-black text-slate-950">{partner.completed}</p>
-                  <p className="mt-1 uppercase tracking-[0.2em] text-slate-500">Deliveries</p>
-                </div>
-                <div className="rounded-3xl bg-white p-4 text-sm shadow-sm">
-                  <p className="font-black text-slate-950">{partner.rating.toFixed(1)}</p>
-                  <p className="mt-1 uppercase tracking-[0.2em] text-slate-500">Rating</p>
-                </div>
-                <div className="rounded-3xl bg-white p-4 text-sm shadow-sm">
-                  <p className="font-black text-slate-950">{partner.status === 'On Duty' ? 'Live' : 'Paused'}</p>
-                  <p className="mt-1 uppercase tracking-[0.2em] text-slate-500">Network</p>
-                </div>
-              </div>
-              <div className="mt-5 flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={() => toggleAvailability(partner.id)}
-                  className="inline-flex items-center gap-2 rounded-3xl bg-slate-900 px-4 py-3 text-xs font-black uppercase tracking-[0.25em] text-white transition hover:bg-slate-800"
-                >
-                  <MapPin className="h-4 w-4" /> {partner.status === 'On Duty' ? 'Take offline' : 'Activate'}
-                </button>
-                <button type="button" className="inline-flex items-center gap-2 rounded-3xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-black uppercase tracking-[0.25em] text-emerald-900 transition hover:bg-emerald-100">
-                  <TrendingUp className="h-4 w-4" /> Performance
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
@@ -77,3 +115,4 @@ export default function DeliveryManager() {
     </div>
   );
 }
+

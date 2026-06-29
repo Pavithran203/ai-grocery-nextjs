@@ -34,7 +34,7 @@ export const LanguageProvider = ({ children }) => {
   const [language, setLanguage] = useState('EN');
 
   useEffect(() => {
-    const savedLanguage = sessionStorage.getItem('nearmart_language') || localStorage.getItem('i18nextLng') || 'en';
+    const savedLanguage = localStorage.getItem('nearmart_language') || localStorage.getItem('i18nextLng') || 'en';
     const normalized = normalizeLanguage(savedLanguage);
     setLanguage(normalized);
     void i18n.changeLanguage(LABEL_TO_CODE[normalized] || 'en');
@@ -44,7 +44,7 @@ export const LanguageProvider = ({ children }) => {
     const syncLanguage = (lng) => {
       const normalized = normalizeLanguage(lng);
       setLanguage(normalized);
-      sessionStorage.setItem('nearmart_language', normalized);
+      localStorage.setItem('nearmart_language', normalized);
       localStorage.setItem('i18nextLng', LABEL_TO_CODE[normalized] || 'en');
       document.documentElement.lang = LABEL_TO_CODE[normalized] || 'en';
     };
@@ -73,7 +73,7 @@ export const LanguageProvider = ({ children }) => {
   const changeLanguage = (newLang) => {
     const normalized = normalizeLanguage(newLang);
     setLanguage(normalized);
-    sessionStorage.setItem('nearmart_language', normalized);
+    localStorage.setItem('nearmart_language', normalized);
     localStorage.setItem('i18nextLng', LABEL_TO_CODE[normalized] || 'en');
     document.documentElement.lang = LABEL_TO_CODE[normalized] || 'en';
     void i18n.changeLanguage(LABEL_TO_CODE[normalized] || 'en');
